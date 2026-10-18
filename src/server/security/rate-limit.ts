@@ -8,7 +8,11 @@ type Bucket = { hits: number[] };
 const g = globalThis as unknown as { __hopRate?: Map<string, Bucket> };
 const buckets = (g.__hopRate ??= new Map());
 
+/** HOP_RATE_LIMIT=off is for automated end-to-end test servers only — never set it on a real deployment. */
+const disabled = () => process.env.HOP_RATE_LIMIT === "off";
+
 export function rateLimit(key: string, limit: number, windowMs: number) {
+  if (disabled()) return;
   const now = Date.now();
   const bucket = buckets.get(key) ?? { hits: [] };
   bucket.hits = bucket.hits.filter((t: number) => now - t < windowMs);

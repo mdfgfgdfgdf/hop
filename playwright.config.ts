@@ -39,6 +39,7 @@ export default defineConfig({
       DB_AUTO_SEED: "true",
       HOP_DEMO_MODE: "true",
       HOP_SESSION_SECRET: "e2e-secret-e2e-secret-e2e-secret-000",
+      HOP_RATE_LIMIT: "off", // dozens of API logins from one IP in a minute
       GEO_PROVIDER: "demo",
       HOP_DATA_DIR: "./data/e2e",
       NEXT_PUBLIC_MAP_STYLE_URL: "",
