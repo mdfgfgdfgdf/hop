@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3100;
+// E2E_PORT lets parallel checkouts run their suites without sharing a server.
+const PORT = Number(process.env.E2E_PORT ?? 3100);
 // Use localhost: the Next dev server only serves its dev client to allowed origins.
 const baseURL = `http://localhost:${PORT}`;
 
