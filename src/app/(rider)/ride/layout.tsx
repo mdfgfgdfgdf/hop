@@ -10,5 +10,9 @@ export default async function RiderLayout({ children }: { children: React.ReactN
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/ride");
   if (user.role !== "rider") redirect(homeFor(user.role));
-  return <RiderShell demoMode={isDemoMode()}>{children}</RiderShell>;
+  return (
+    <RiderShell demoMode={isDemoMode()} userName={user.name}>
+      {children}
+    </RiderShell>
+  );
 }

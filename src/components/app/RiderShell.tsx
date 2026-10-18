@@ -1,16 +1,28 @@
 "use client";
-import { DemoBanner } from "@/components/ui/DemoBanner";
+import { usePathname } from "next/navigation";
+import { MotionConfig } from "motion/react";
+import { ActiveRideProvider } from "@/components/rider/ActiveRideProvider";
+import { ActiveRideChip } from "@/components/rider/ActiveRideChip";
+import { RiderInfoContext } from "@/components/rider/RiderContext";
 
-/** Rider app chrome: light theme, full-bleed content (map pages manage their own layout). */
-export function RiderShell({ children, demoMode }: { children: React.ReactNode; demoMode: boolean }) {
+/**
+ * Rider app chrome: light theme, full-bleed content (map pages manage their
+ * own layout). Shares one active-ride state + SSE connection across pages and
+ * shows the "active ride" chip everywhere except the live map itself.
+ * The demo label is rendered by each page header (top bar / page header).
+ */
+export function RiderShell({ children, demoMode, userName = null }: { children: React.ReactNode; demoMode: boolean; userName?: string | null }) {
+  const pathname = usePathname();
   return (
-    <div data-theme="light" data-app="rider" className="relative flex min-h-dvh flex-col bg-bg text-fg">
-      {demoMode && (
-        <div className="pointer-events-none fixed top-2 left-1/2 z-50 -translate-x-1/2 safe-top">
-          <DemoBanner compact />
-        </div>
-      )}
-      {children}
-    </div>
+    <MotionConfig reducedMotion="user">
+      <RiderInfoContext.Provider value={{ demoMode, initialName: userName }}>
+        <ActiveRideProvider>
+          <div data-theme="light" data-app="rider" className="relative flex min-h-dvh flex-col bg-bg text-fg">
+            {children}
+            {pathname !== "/ride" && <ActiveRideChip />}
+          </div>
+        </ActiveRideProvider>
+      </RiderInfoContext.Provider>
+    </MotionConfig>
   );
 }

@@ -116,21 +116,25 @@ body {
   text-align: right;
 }
 
-* {
-  border-color: var(--line);
+/* Element resets live in the base layer so component (.btn, .input…) and
+   utility classes can override them — unlayered rules beat every layer. */
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+    color: inherit;
+  }
 }
 
 ::selection {
   background: var(--brand-200);
   color: var(--ink);
-}
-
-input,
-textarea,
-select,
-button {
-  font: inherit;
-  color: inherit;
 }
 
 input::placeholder,
