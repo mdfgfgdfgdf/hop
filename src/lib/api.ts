@@ -131,6 +131,7 @@ export const api = {
   },
   admin: {
     overview: () => apiFetch<AdminOverview>("/api/admin/overview"),
+    counts: () => apiFetch<AdminCounts>("/api/admin/counts"),
     drivers: (q: { status?: string; q?: string; limit?: number } = {}) => apiFetch<{ drivers: { user: PublicUserDTO; profile: DriverProfileDTO }[] }>(`/api/admin/drivers?${toQuery(q)}`),
     driver: (id: string) => apiFetch<AdminDriverDetail>(`/api/admin/drivers/${id}`),
     verifyDriver: (id: string, input: { decision: "approve" | "reject" | "suspend" | "reinstate"; reason?: string | null; notes?: string | null }) =>
@@ -187,7 +188,7 @@ export type TicketDTO = {
   resolvedAt: string | null;
   createdAt: string;
   updatedAt: string;
-  messages: { id: string; authorId: string; body: string; internal: boolean; createdAt: string }[];
+  messages: { id: string; authorId: string; authorName: string | null; body: string; internal: boolean; createdAt: string }[];
 };
 
 export type PricingConfigDTO = {
@@ -213,6 +214,7 @@ export type PricingConfigDTO = {
   quoteTtlSec: number;
   notes: string | null;
   updatedBy: string | null;
+  updatedByName?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -233,10 +235,19 @@ export type AdminOverview = {
   liveDrivers: { id: string; name: string; availability: "offline" | "online" | "busy"; lat: number | null; lng: number | null; heading: number | null; vehicleClass: string; at: string | null }[];
 };
 
+export type AdminCounts = {
+  drivers: Record<"documents_required" | "under_review" | "approved" | "rejected" | "suspended", number>;
+  pendingVerifications: number;
+  activeRides: number;
+  openTickets: number;
+  urgentTickets: number;
+};
+
 export type AdminDriverDetail = {
   user: PublicUserDTO;
   profile: DriverProfileDTO;
   documents: DriverDocumentDTO[];
+  requiredDocuments: string[];
   stats: { completedRides: number; payoutAgorot: number };
   recentRides: RideDTO[];
 };
@@ -252,7 +263,7 @@ export type AdminUserDetail = {
 export type AdminRideDetail = {
   ride: RideDTO;
   events: RideEventDTO[];
-  offers: { id: string; driverId: string; status: string; attempt: number; driverDistanceM: number; driverEtaS: number; driverPayoutAgorot: number; expiresAt: string; respondedAt: string | null; createdAt: string }[];
+  offers: { id: string; driverId: string; driverName: string | null; status: string; attempt: number; driverDistanceM: number; driverEtaS: number; driverPayoutAgorot: number; expiresAt: string; respondedAt: string | null; createdAt: string }[];
   ledger: { id: string; type: string; amountAgorot: number; note: string | null; userId: string | null; createdAt: string }[];
   track: { lat: number; lng: number; at: string }[];
 };

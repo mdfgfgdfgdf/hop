@@ -7,7 +7,7 @@ import { channels, publish } from "../realtime/bus";
 
 const iso = (d: Date | null) => (d ? d.toISOString() : null);
 
-export function serializeTicket(t: SupportTicket, extra: { openerName?: string; messages?: TicketMessage[]; viewerIsStaff: boolean }) {
+export function serializeTicket(t: SupportTicket, extra: { openerName?: string; messages?: (TicketMessage & { authorName?: string | null })[]; viewerIsStaff: boolean }) {
   return {
     id: t.id,
     rideId: t.rideId,
@@ -24,7 +24,7 @@ export function serializeTicket(t: SupportTicket, extra: { openerName?: string; 
     updatedAt: t.updatedAt.toISOString(),
     messages: (extra.messages ?? [])
       .filter((m) => extra.viewerIsStaff || !m.internal)
-      .map((m) => ({ id: m.id, authorId: m.authorId, body: m.body, internal: m.internal, createdAt: m.createdAt.toISOString() })),
+      .map((m) => ({ id: m.id, authorId: m.authorId, authorName: m.authorName ?? null, body: m.body, internal: m.internal, createdAt: m.createdAt.toISOString() })),
   };
 }
 export type TicketDTO = ReturnType<typeof serializeTicket>;
@@ -72,7 +72,14 @@ export async function getTicket(user: User, id: string) {
     .where(eq(supportTickets.id, id));
   if (!row) throw notFound();
   if (!staff && row.t.openedBy !== user.id) throw forbidden();
-  const messages = await db.select().from(ticketMessages).where(eq(ticketMessages.ticketId, id)).orderBy(ticketMessages.createdAt);
+  const messages = (
+    await db
+      .select({ m: ticketMessages, authorName: users.name })
+      .from(ticketMessages)
+      .leftJoin(users, eq(users.id, ticketMessages.authorId))
+      .where(eq(ticketMessages.ticketId, id))
+      .orderBy(ticketMessages.createdAt)
+  ).map((r) => ({ ...r.m, authorName: r.authorName }));
   return serializeTicket(row.t, { openerName: row.openerName, messages, viewerIsStaff: staff });
 }
 

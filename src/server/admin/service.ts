@@ -100,12 +100,37 @@ export async function getDriver(id: string) {
   const viewer = { id: "admin", role: "admin" as const };
   const recentRides = [];
   for (const r of recent) recentRides.push(serializeRide(r, await loadRideContext(db, r), viewer));
+  const { REQUIRED_DOCUMENTS } = await import("../driver/service");
   return {
     user: publicUser(row.user),
     profile: serializeDriverProfile(row.profile),
     documents: docs.map(serializeDocument),
+    requiredDocuments: REQUIRED_DOCUMENTS,
     stats: { completedRides: Number(stats.completed), payoutAgorot: Number(stats.payout) },
     recentRides,
+  };
+}
+
+/** Light counters for navigation badges and tabs. */
+export async function counts() {
+  const db = await getDb();
+  const byStatus = await db
+    .select({ status: driverProfiles.verificationStatus, n: count() })
+    .from(driverProfiles)
+    .groupBy(driverProfiles.verificationStatus);
+  const [[activeRides], [openTickets], [urgentTickets]] = await Promise.all([
+    db.select({ n: count() }).from(rides).where(inArray(rides.status, [...ACTIVE_STATUSES])),
+    db.select({ n: count() }).from(supportTickets).where(inArray(supportTickets.status, ["open", "in_progress"])),
+    db.select({ n: count() }).from(supportTickets).where(and(inArray(supportTickets.status, ["open", "in_progress"]), eq(supportTickets.priority, "urgent"))),
+  ]);
+  const drivers: Record<string, number> = { documents_required: 0, under_review: 0, approved: 0, rejected: 0, suspended: 0 };
+  for (const r of byStatus) drivers[r.status] = Number(r.n);
+  return {
+    drivers,
+    pendingVerifications: drivers.under_review,
+    activeRides: Number(activeRides.n),
+    openTickets: Number(openTickets.n),
+    urgentTickets: Number(urgentTickets.n),
   };
 }
 
@@ -216,7 +241,15 @@ export async function listRides(filter: { status?: string; flagged?: boolean; q?
   if (filter.flagged) conds.push(sql`jsonb_array_length(${rides.flags}) > 0`);
   if (filter.from) conds.push(gte(rides.createdAt, filter.from));
   if (filter.to) conds.push(lte(rides.createdAt, filter.to));
-  if (filter.q) conds.push(or(ilike(rides.pickupAddress, `%${filter.q}%`), ilike(rides.dropoffAddress, `%${filter.q}%`), eq(rides.id, filter.q))!);
+  if (filter.q) {
+    const q = `%${filter.q}%`;
+    // Match addresses, the ride id, or the rider's / driver's name or phone.
+    const people = db
+      .select({ id: users.id })
+      .from(users)
+      .where(or(ilike(users.name, q), ilike(users.phone, q), ilike(users.email, q)));
+    conds.push(or(ilike(rides.pickupAddress, q), ilike(rides.dropoffAddress, q), eq(rides.id, filter.q), inArray(rides.riderId, people), inArray(rides.driverId, people))!);
+  }
   const rows = await db.select().from(rides).where(conds.length ? and(...conds) : undefined).orderBy(desc(rides.createdAt)).limit(filter.limit ?? 100);
   const viewer = { id: "admin", role: "admin" as const };
   const out = [];
@@ -229,8 +262,8 @@ export async function adjustRide(staff: Staff, id: string, input: { refundAgorot
   await db.transaction(async (tx) => {
     const [ride] = await tx.select().from(rides).where(eq(rides.id, id)).for("update");
     if (!ride) throw notFound();
-    if (ride.status !== "completed" && ride.status !== "cancelled") throw conflict("not_final", "ניתן לבצע התאמות רק לנסיעות שהסתיימו");
     const refund = input.refundAgorot ?? 0;
+    if (refund > 0 && ride.status !== "completed" && ride.status !== "cancelled") throw conflict("not_final", "ניתן לבצע החזרים רק לנסיעות שהסתיימו");
     if (refund < 0) throw badRequest("bad_refund", "סכום החזר שלילי");
     const charged = (ride.finalTotalAgorot ?? 0) + ride.cancellationFeeAgorot;
     if (ride.refundedAgorot + refund > charged) throw badRequest("refund_exceeds", "סכום ההחזר גבוה מהסכום ששולם");
@@ -252,9 +285,15 @@ export async function adjustRide(staff: Staff, id: string, input: { refundAgorot
 
 export async function getPricing() {
   const db = await getDb();
-  const [active] = await db.select().from(pricingConfigs).where(eq(pricingConfigs.active, true)).orderBy(desc(pricingConfigs.updatedAt)).limit(1);
-  const history = await db.select().from(pricingConfigs).orderBy(desc(pricingConfigs.createdAt)).limit(20);
-  return { active: active ?? null, history };
+  const rows = await db
+    .select({ cfg: pricingConfigs, updatedByName: users.name })
+    .from(pricingConfigs)
+    .leftJoin(users, eq(users.id, pricingConfigs.updatedBy))
+    .orderBy(desc(pricingConfigs.createdAt))
+    .limit(20);
+  const history = rows.map((r) => ({ ...r.cfg, updatedByName: r.updatedByName }));
+  const active = history.find((h) => h.active) ?? null;
+  return { active, history };
 }
 
 export type PricingInput = Partial<Omit<PricingConfig, "id" | "createdAt" | "updatedAt" | "updatedBy" | "active">>;

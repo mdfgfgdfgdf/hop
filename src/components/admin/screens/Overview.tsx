@@ -5,7 +5,7 @@ import { ArrowLeft, Car, CheckCircle2, Flag, LifeBuoy, RotateCw, Route, ShieldAl
 import { api, type AdminOverview } from "@/lib/api";
 import { formatRelative } from "@/lib/format";
 import { AVAILABILITY_HE, VEHICLE_CLASS_HE } from "@/lib/labels";
-import { AdminMap as MapView, type MapMarker } from "../AdminMap";
+import { MapView, type MapMarker } from "@/components/map";
 import { Button, EmptyState, cn } from "@/components/ui";
 import { useAdminFeed, readAdminDriver, readDriverLocation } from "../realtime";
 import { useDebouncedCallback, useLoad } from "../hooks";

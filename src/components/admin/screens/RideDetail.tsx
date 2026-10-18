@@ -9,7 +9,7 @@ import { CANCELLED_BY_HE, CANCEL_REASONS_HE, LEDGER_TYPE_HE, PAYMENT_METHOD_HE, 
 import { ilsToAgorot } from "@/lib/money";
 import type { RideDTO } from "@/lib/types";
 import { Button, EmptyState, Field, Input, Pill, useToast, cn } from "@/components/ui";
-import { AdminMap as MapView, type MapMarker } from "../AdminMap";
+import { MapView, type MapMarker } from "@/components/map";
 import { readAdminRide, readDriverLocation, useAdminFeed } from "../realtime";
 import { errorMessage, shortId, useDebouncedCallback, useLoad } from "../hooks";
 import { DetailSkeleton, ErrorState, KV, Ltr, Muted, Page, PageHeader, Panel } from "../ui";

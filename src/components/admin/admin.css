@@ -1,22 +1,5 @@
 /* Admin-only tweaks (scoped under the admin shell). */
 
-/* Workaround: globals.css declares `input, textarea, select, button { font: inherit; color: inherit }`
-   outside any cascade layer, so it beats every layered Tailwind utility and `.btn-*` component
-   style on form controls (white text on primary buttons, font-weight, text-sm…). Reverting the
-   unlayered declarations lets the layered styles (preflight → components → utilities) apply. */
-.admin-root :is(button, input, textarea, select),
-.admin-portal :is(button, input, textarea, select) {
-  font: revert-layer;
-  color: revert-layer;
-}
-
-/* Workaround: maplibre-gl.css is unlayered, so its `.maplibregl-map { position: relative }`
-   beats Tailwind's layered `absolute inset-0` on MapView's container (height collapses to 0). */
-.admin-root .maplibregl-map {
-  position: absolute;
-  inset: 0;
-}
-
 /* Track points on the ride map: small, quiet dots instead of full pins. */
 .hop-marker[data-kind="poi"] .hop-marker-pin {
   width: 10px;
