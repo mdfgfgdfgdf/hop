@@ -9,8 +9,17 @@
  *   <MapView center={{lat,lng}} zoom={14} markers={[...]} polyline={[[lat,lng],...]} onMoveEnd={...} />
  */
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
-import { Map as MLMap, Marker, LngLatBounds, type StyleSpecification, type GeoJSONSource } from "maplibre-gl";
+import { Map as MLMap, Marker, LngLatBounds, setWorkerUrl, type StyleSpecification, type GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+
+// MapLibre resolves its web worker relative to the bundled chunk, which does
+// not exist under Turbopack (404 → "Worker failed to load"). Point it at the
+// worker emitted as a static asset instead. Module is client-only (dynamic import).
+try {
+  setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).href);
+} catch {
+  /* keep MapLibre's default */
+}
 import type { LatLng, Polyline } from "@/lib/types";
 import { cn } from "@/components/ui/cn";
 
@@ -221,7 +230,7 @@ export function MapView({ center, zoom = 14, markers = [], polyline, fit, fitPad
 
   return (
     <div className={cn("relative h-full w-full overflow-hidden", className)} data-map-offline={offline || undefined}>
-      <div ref={containerRef} className="absolute inset-0" />
+      <div ref={containerRef} className="hop-map-container absolute inset-0" style={{ position: "absolute", inset: 0 }} />
       {offline && (
         <div className="pointer-events-none absolute inset-0" aria-hidden>
           <div

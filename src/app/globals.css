@@ -96,68 +96,74 @@
   --radius-xl: var(--radius-xl);
 }
 
-/* ───────────────────────────── base ───────────────────────────── */
-html {
-  font-family: var(--font-sans);
-  -webkit-text-size-adjust: 100%;
-  -webkit-tap-highlight-color: transparent;
-  scroll-behavior: smooth;
-}
+/* ───────────────────────────── base ─────────────────────────────
+   Base rules live in Tailwind's `base` layer so component classes (.btn-*)
+   and utilities always win over them (unlayered rules would beat both). */
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
 
-body {
-  background: var(--bg);
-  color: var(--fg);
-  font-feature-settings: "tnum" 1;
-  min-height: 100dvh;
-  overscroll-behavior-y: none;
-}
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-feature-settings: "tnum" 1;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
 
-[dir="rtl"] {
-  text-align: right;
-}
+  [dir="rtl"] {
+    text-align: right;
+  }
 
-* {
-  border-color: var(--line);
-}
+  * {
+    border-color: var(--line);
+  }
 
-::selection {
-  background: var(--brand-200);
-  color: var(--ink);
-}
+  ::selection {
+    background: var(--brand-200);
+    color: var(--ink);
+  }
 
-input,
-textarea,
-select,
-button {
-  font: inherit;
-  color: inherit;
-}
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+    color: inherit;
+  }
 
-input::placeholder,
-textarea::placeholder {
-  color: var(--fg-muted);
-  opacity: 0.8;
-}
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--fg-muted);
+    opacity: 0.8;
+  }
 
-:focus-visible {
-  outline: 3px solid color-mix(in oklab, var(--brand) 55%, transparent);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
+  :focus-visible {
+    outline: 3px solid color-mix(in oklab, var(--brand) 55%, transparent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* thin scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--fg) 25%, transparent) transparent;
+  }
 }
 
 /* numerals stay LTR inside RTL copy */
-.ltr-nums,
-.tabular {
-  font-variant-numeric: tabular-nums;
-  direction: ltr;
-  unicode-bidi: isolate;
-  display: inline-block;
-}
-
-/* thin scrollbars */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklab, var(--fg) 25%, transparent) transparent;
+@layer components {
+  .ltr-nums,
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+    unicode-bidi: isolate;
+    display: inline-block;
+  }
 }
 
 /* ───────────────────────────── liquid glass ───────────────────────────── */
@@ -535,6 +541,12 @@ textarea::placeholder {
 }
 .maplibregl-canvas {
   outline: none;
+}
+/* maplibre-gl.css is unlayered and sets `.maplibregl-map { position: relative }`;
+   our container must stay absolutely positioned to fill its parent. */
+.hop-map-container.maplibregl-map {
+  position: absolute;
+  inset: 0;
 }
 .hop-marker {
   display: grid;
