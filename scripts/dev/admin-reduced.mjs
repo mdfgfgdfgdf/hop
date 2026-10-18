@@ -1,6 +1,6 @@
 /** Checks the overview with prefers-reduced-motion: numbers must render final values immediately. */
 import { chromium } from "@playwright/test";
-const BASE = process.env.BASE_URL ?? "http://localhost:3003";
+const BASE = process.env.BASE_URL ?? "http://localhost:3001";
 const b = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });
 const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce", locale: "he-IL" });
 await ctx.request.post(`${BASE}/api/auth/login`, { data: { email: "admin@hop.local", password: "Admin1234!" } });

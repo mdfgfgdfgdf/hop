@@ -6,7 +6,7 @@ import { chromium, devices } from "@playwright/test";
 import fs from "node:fs";
 
 const BASE = process.env.BASE_URL || "http://localhost:3001";
-const OUT = process.env.OUT_DIR || "/tmp/claude-0/-home-user-hop/71bf8acf-8656-5cac-8fb7-200922f65bdb/scratchpad/rider";
+const OUT = process.env.OUT_DIR || "/tmp/claude-0/-home-user-hop/71bf8acf-8656-5cac-8fb7-200922f65bdb/scratchpad/rider-v2";
 const SUFFIX = process.env.PHONE_H ? `-h${process.env.PHONE_H}` : "";
 const ONLY = process.env.ONLY || "all"; // all | flow | pages | errors
 fs.mkdirSync(OUT, { recursive: true });
@@ -50,6 +50,8 @@ function watch(page, label) {
 const hydrated = (page) => page.waitForFunction(() => Object.keys(document).some((k) => k.startsWith("__reactContainer")), null, { timeout: 20000 });
 const shot = async (page, name, label) => {
   await page.waitForTimeout(450);
+  // Hide the Next.js dev-tools badge so it doesn't cover content in screenshots.
+  await page.addStyleTag({ content: "nextjs-portal{display:none!important}" }).catch(() => {});
   await page.screenshot({ path: `${OUT}/${name}-${label}${SUFFIX}.png` });
   console.log("shot", name, label);
   lastShot = `${name}-${label}`;

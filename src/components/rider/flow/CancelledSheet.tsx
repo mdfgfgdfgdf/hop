@@ -32,14 +32,14 @@ export function CancelledSheet({ ride, onRetry, onDone }: { ride: RideDTO; onRet
       </div>
 
       {reason && (
-        <div className="mt-4 rounded-2xl bg-[color-mix(in_oklab,var(--fg)_5%,transparent)] px-4 py-3 text-sm">
+        <div className="well mt-4 rounded-2xl px-4 py-3 text-sm">
           <span className="font-bold">סיבה: </span>
           {reason}
           {noDrivers && <div className="mt-1 text-fg-muted">כל הנהגים בסביבה היו עסוקים הפעם. לא חויבתם — ננסה שוב יחד?</div>}
         </div>
       )}
 
-      <div className="mt-4 rounded-[22px] border border-line bg-surface/70 p-3">
+      <div className="tile mt-4 rounded-[22px] p-3">
         <RouteSummary dense pickup={{ address: ride.pickup.address }} dropoff={{ address: ride.dropoff.address }} />
         <div className="divider my-2" />
         <div className="flex items-center justify-between px-1 text-sm">

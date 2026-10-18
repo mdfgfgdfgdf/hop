@@ -9,6 +9,7 @@ import { MapView, type MapMarker } from "@/components/map";
 import { Button, EmptyState, cn } from "@/components/ui";
 import { useAdminFeed, readAdminDriver, readDriverLocation } from "../realtime";
 import { useDebouncedCallback, useLoad } from "../hooks";
+import { useReportBusy } from "../brand";
 import { Bone, DataTable, ErrorState, Kpi, Page, PageHeader, Panel } from "../ui";
 import { AnimatedNumber, NeedleLoader, SPRING, countHe, useGlide } from "../motion";
 import { motion } from "motion/react";
@@ -24,6 +25,7 @@ export function Overview() {
   const { data, error, loading, refreshing, reload } = useLoad("overview", () => api.admin.overview());
   const [live, setLive] = useState<Record<string, Partial<LiveDriver>>>({});
   const debouncedReload = useDebouncedCallback(reload, 1200);
+  useReportBusy("overview", loading || refreshing);
 
   useAdminFeed((e) => {
     const loc = readDriverLocation(e);

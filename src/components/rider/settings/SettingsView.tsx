@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Banknote, Check, ChevronLeft, CreditCard, FileText, LogOut, MapPin, ShieldCheck, Trash2 } from "lucide-react";
-import { Logo } from "@/components/brand/Logo";
+import { AnimatedLogo } from "@/components/brand/AnimatedLogo";
 import { api } from "@/lib/api";
 import { Avatar, Button, Field, Input, useToast } from "@/components/ui";
 import { cn } from "@/components/ui/cn";
@@ -23,7 +23,7 @@ export function SettingsView() {
         <PrivacySection />
         <AccountSection />
         <div className="mt-10 flex flex-col items-center gap-1 text-xs text-fg-muted">
-          <Logo height={22} />
+          <AnimatedLogo height={24} hopOn="both" title="HOP" />
           <span>העיר שלך. הופ אחד. · MOVE WITH HOP</span>
         </div>
       </div>
@@ -120,9 +120,12 @@ function PaymentSection() {
                 setPaymentPreference(o.value);
                 toast.success("אמצעי התשלום עודכן", o.title);
               }}
-              className="flex min-h-16 w-full items-center gap-3 rounded-[20px] px-3 py-3 text-start hover:bg-[color-mix(in_oklab,var(--fg)_4%,transparent)]"
+              className={cn(
+                "flex min-h-16 w-full items-center gap-3 rounded-[20px] px-3 py-3 text-start transition-colors",
+                selected ? "bg-brand-50" : "hover:bg-[color-mix(in_oklab,var(--fg)_4%,transparent)]",
+              )}
             >
-              <span className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-full", selected ? "bg-brand text-white" : "bg-[color-mix(in_oklab,var(--fg)_7%,transparent)] text-fg-muted")}>{o.icon}</span>
+              <span className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-full", selected ? "bg-brand-100 text-brand" : "well text-fg-muted")}>{o.icon}</span>
               <span className="min-w-0 flex-1">
                 <span className="block text-[15px] font-bold">{o.title}</span>
                 <span className="block text-xs text-fg-muted">{o.text}</span>

@@ -200,7 +200,7 @@ export function Audit() {
                       {isOpen && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={SPRING} className="overflow-hidden">
                           <div className="px-4 pb-4 md:px-5">
-                            <pre dir="ltr" className="max-h-72 overflow-auto rounded-2xl bg-ink p-4 text-start font-mono text-xs leading-relaxed text-[#e8eaf0]">
+                            <pre dir="ltr" className="max-h-72 overflow-auto rounded-2xl border border-line bg-[#F3F6FB] p-4 text-start font-mono text-xs leading-relaxed text-ink-700">
                               {JSON.stringify({ action: l.action, actor: { id: l.actorId, role: l.actorRole }, target: { type: l.targetType, id: l.targetId }, ip: l.ip, data: l.data }, null, 2)}
                             </pre>
                           </div>

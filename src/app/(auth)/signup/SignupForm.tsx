@@ -8,12 +8,14 @@ import { homeForRole } from "@/lib/routes";
 import { Button, Field, Input, cn } from "@/components/ui";
 import { useSession } from "@/components/app/session";
 import { useHydrated } from "@/lib/use-hydrated";
+import { useAuthBrand } from "../AuthBrand";
 
 export function SignupForm() {
   const router = useRouter();
   const params = useSearchParams();
   const { refresh } = useSession();
   const hydrated = useHydrated();
+  const brand = useAuthBrand();
   const [role, setRole] = useState<"rider" | "driver">(params.get("role") === "driver" ? "driver" : "rider");
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
   const [accept, setAccept] = useState(false);
@@ -32,8 +34,10 @@ export function SignupForm() {
       return;
     }
     setLoading(true);
+    brand.setPhase("submitting");
     try {
       const { user } = await api.auth.signup({ role, ...form, acceptTerms: true });
+      brand.setPhase("success");
       await refresh();
       router.replace(homeForRole(user.role));
     } catch (err) {
@@ -46,15 +50,16 @@ export function SignupForm() {
         }
       } else setError("משהו השתבש, נסו שוב");
       setLoading(false);
+      brand.setPhase("idle");
     }
   }
 
   return (
-    <div className="glass glass-strong p-6 animate-fade-up">
-      <h1 className="display text-3xl">יוצרים חשבון</h1>
-      <p className="mt-1 text-sm text-fg-muted">דקה אחת ואתם בפנים</p>
+    <div className="glass glass-strong animate-fade-up p-6 sm:p-7">
+      <h1 className="display text-[30px]">יוצרים חשבון</h1>
+      <p className="mt-1.5 text-sm text-fg-muted">דקה אחת ואתם בפנים</p>
 
-      <div className="mt-5 grid grid-cols-2 gap-2" role="radiogroup" aria-label="סוג חשבון">
+      <div className="mt-5 grid grid-cols-2 gap-1 rounded-full bg-[color-mix(in_oklab,var(--fg)_6%,transparent)] p-1 shadow-[inset_0_1px_2px_rgba(17,19,24,.06)]" role="radiogroup" aria-label="סוג חשבון">
         {(
           [
             { v: "rider", label: "נוסע/ת", icon: <User size={18} /> },
@@ -67,7 +72,12 @@ export function SignupForm() {
             role="radio"
             aria-checked={role === o.v}
             onClick={() => setRole(o.v)}
-            className={cn("flex items-center justify-center gap-2 rounded-2xl border px-3 py-3 text-sm font-bold transition", role === o.v ? "border-brand bg-brand-100 text-brand-700" : "border-line bg-surface/60 text-fg-muted")}
+            className={cn(
+              "flex min-h-11 items-center justify-center gap-2 rounded-full px-3 text-sm font-bold transition-[background-color,color,box-shadow]",
+              role === o.v
+                ? "bg-surface text-brand-700 shadow-[0_0_0_1.5px_var(--brand),0_6px_16px_-8px_rgba(36,87,255,.55)]"
+                : "text-fg-muted hover:text-fg",
+            )}
           >
             {o.icon}
             {o.label}
@@ -103,22 +113,23 @@ export function SignupForm() {
           </span>
         </label>
         {role === "driver" && (
-          <p className="rounded-xl bg-brand-50 px-3 py-2 text-xs text-brand-700">
+          <p className="rounded-2xl border border-brand/15 bg-brand-50 px-3.5 py-2.5 text-xs leading-relaxed text-brand-700">
             נהגים נדרשים להעלות רישיון נהיגה, היתר להסעת נוסעים בשכר, רישיון מונית, רישיון רכב וביטוח. קבלת נסיעות מתאפשרת רק לאחר אישור.
           </p>
         )}
         {error && (
-          <div role="alert" data-testid="signup-error" className="rounded-xl bg-danger/10 px-3 py-2 text-sm font-semibold text-danger">
+          <div role="alert" data-testid="signup-error" className="rounded-2xl border border-danger/20 bg-danger/10 px-3.5 py-2.5 text-sm font-semibold text-danger">
             {error}
           </div>
         )}
-        <Button type="submit" block loading={loading} disabled={!hydrated} data-testid="signup-submit">
+        <Button type="submit" size="lg" block loading={loading} disabled={!hydrated} data-testid="signup-submit">
           {role === "driver" ? "הרשמה כנהג/ת" : "הרשמה"}
         </Button>
       </form>
+      <div className="divider mt-6" />
       <p className="mt-5 text-center text-sm text-fg-muted">
         כבר יש חשבון?{" "}
-        <Link href="/login" className="font-bold text-brand">
+        <Link href="/login" className="font-bold text-brand hover:underline">
           התחברות
         </Link>
       </p>

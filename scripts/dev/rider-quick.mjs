@@ -2,7 +2,7 @@
 import { chromium, devices } from "@playwright/test";
 import fs from "node:fs";
 const BASE = process.env.BASE_URL || "http://localhost:3001";
-const OUT = process.env.OUT_DIR || "/tmp/claude-0/-home-user-hop/71bf8acf-8656-5cac-8fb7-200922f65bdb/scratchpad/rider";
+const OUT = process.env.OUT_DIR || "/tmp/claude-0/-home-user-hop/71bf8acf-8656-5cac-8fb7-200922f65bdb/scratchpad/rider-v2";
 const path = process.argv[2] || "/ride";
 const name = process.argv[3] || "quick";
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });

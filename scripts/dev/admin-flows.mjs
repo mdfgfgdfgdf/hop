@@ -5,8 +5,8 @@
  */
 import { chromium } from "@playwright/test";
 
-const BASE = process.env.BASE_URL ?? "http://localhost:3003";
-const OUT = process.env.OUT_DIR ?? "/tmp/claude-0/-home-user-hop/71bf8acf-8656-5cac-8fb7-200922f65bdb/scratchpad/admin";
+const BASE = process.env.BASE_URL ?? "http://localhost:3001";
+const OUT = process.env.OUT_DIR ?? "/tmp/claude-0/-home-user-hop/71bf8acf-8656-5cac-8fb7-200922f65bdb/scratchpad/rider-v2/admin";
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });
 const results = [];
 const errors = [];

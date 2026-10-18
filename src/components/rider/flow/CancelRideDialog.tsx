@@ -61,8 +61,8 @@ export function CancelRideDialog({
                 aria-pressed={reason === r}
                 className={
                   reason === r
-                    ? "min-h-10 rounded-full bg-ink px-4 text-sm font-bold text-white"
-                    : "min-h-10 rounded-full border border-line bg-surface px-4 text-sm font-semibold"
+                    ? "tile-selected min-h-10 rounded-full px-4 text-sm font-bold text-brand-700"
+                    : "tile tile-hover min-h-10 rounded-full px-4 text-sm font-semibold"
                 }
               >
                 {r}
@@ -72,7 +72,7 @@ export function CancelRideDialog({
         </fieldset>
       )}
       {feeLikely && (
-        <div className="mb-4 flex items-start gap-2 rounded-2xl bg-warning/15 px-3 py-2.5 text-sm" role="note">
+        <div className="mb-4 flex items-start gap-2 rounded-2xl bg-warning/15 px-3 py-2.5 text-sm shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--warning)_35%,transparent)]" role="note">
           <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-700" aria-hidden />
           <span>
             <b>ייתכנו דמי ביטול.</b> עברו יותר מ־2 דקות מאז שהנהג אישר את הנסיעה.

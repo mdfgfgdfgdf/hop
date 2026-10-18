@@ -27,6 +27,7 @@ export function QuoteSheet({
   onEditDropoff,
   onOrdered,
   onRideActive,
+  onOrderingChange,
 }: {
   pickup: SelectedPlace;
   dropoff: SelectedPlace;
@@ -35,6 +36,8 @@ export function QuoteSheet({
   onEditDropoff: () => void;
   onOrdered: (ride: RideDTO) => void;
   onRideActive: () => void;
+  /** Lets the map chrome show the "sending" state while the order is in flight. */
+  onOrderingChange?: (ordering: boolean) => void;
 }) {
   const toast = useToast();
   const preferred = usePaymentPreference();
@@ -55,9 +58,11 @@ export function QuoteSheet({
   async function order() {
     if (!selected) return;
     setOrdering(true);
+    onOrderingChange?.(true);
     setOrderError(null);
     try {
       const { ride } = await api.rides.create({ quoteId: selected.id, paymentMethod: payment });
+      onOrderingChange?.(false);
       onOrdered(ride);
     } catch (err) {
       const code = errorCode(err);
@@ -71,12 +76,13 @@ export function QuoteSheet({
         setOrderError(describeError(err));
       }
       setOrdering(false);
+      onOrderingChange?.(false);
     }
   }
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mb-3 rounded-[20px] border border-line bg-surface/70 px-3 py-1">
+      <div className="tile mb-3 rounded-[20px] px-3 py-1">
         <RouteSummary
           compact
           pickup={{ address: placeLabel(pickup) }}
@@ -88,7 +94,7 @@ export function QuoteSheet({
 
       <div className={error && !data ? "hidden" : "mb-3 flex flex-wrap items-center gap-2 text-xs"}>
         {data ? (
-          <span className="pill pill-ink tabular-nums">
+          <span className="pill well tabular-nums text-fg">
             {formatDistance(data.route.distanceM)} · {formatDuration(data.route.durationS)}
           </span>
         ) : (
@@ -118,7 +124,7 @@ export function QuoteSheet({
             <NeedleGauge size={22} label="מחשבים מחיר" /> מחשבים את המחיר המדויק לנסיעה שלכם…
           </div>
           {[0, 1, 2].map((i) => (
-            <div key={i} className="flex items-center gap-3 rounded-[22px] border border-line bg-surface/60 px-3 py-3">
+            <div key={i} className="tile flex items-center gap-3 rounded-[22px] px-3 py-3">
               <Skeleton className="h-12 w-12 rounded-2xl" />
               <div className="flex-1 space-y-1.5">
                 <Skeleton className="h-4 w-1/3" />
@@ -155,8 +161,8 @@ export function QuoteSheet({
               value={payment}
               onChange={setPayment}
               options={[
-                { value: "cash", label: <span className="inline-flex items-center gap-1.5"><Banknote size={15} aria-hidden />מזומן</span> },
-                { value: "card_demo", label: <span className="inline-flex items-center gap-1.5"><CreditCard size={15} aria-hidden />כרטיס (הדגמה)</span> },
+                { value: "cash", label: <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><Banknote size={15} aria-hidden />מזומן</span> },
+                { value: "card_demo", label: <span className="inline-flex items-center gap-1.5 whitespace-nowrap"><CreditCard size={15} aria-hidden />כרטיס (הדגמה)</span> },
               ]}
             />
           </div>
@@ -167,7 +173,7 @@ export function QuoteSheet({
 
       {orderError && <InlineError error={orderError} className="mt-3" />}
       {noneAvailable && (
-        <InlineError className="mt-3" error={{ title: "אין כרגע נהגים זמינים", message: "כל הנהגים בסביבה עסוקים. נסו שוב בעוד דקה." }} action={<Button size="sm" variant="ink" onClick={quote.refresh}>רענון</Button>} />
+        <InlineError className="mt-3" error={{ title: "אין כרגע נהגים זמינים", message: "כל הנהגים בסביבה עסוקים. נסו שוב בעוד דקה." }} action={<Button size="sm" variant="glass" onClick={quote.refresh}>רענון</Button>} />
       )}
 
       <SheetFooter>

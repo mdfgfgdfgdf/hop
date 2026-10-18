@@ -158,7 +158,7 @@ export function Kpi({
   );
   const cls = cn(
     "card relative block h-full p-4 transition-[box-shadow,transform,border-color] duration-200",
-    attention && "border-[color-mix(in_oklab,var(--warning)_55%,transparent)] shadow-[0_0_0_3px_color-mix(in_oklab,var(--warning)_16%,transparent)]",
+    attention && "border-[color-mix(in_oklab,var(--warning)_60%,transparent)] shadow-[0_1px_2px_rgba(17,19,24,.04),0_12px_30px_-24px_rgba(17,19,24,.3),inset_0_3px_0_color-mix(in_oklab,var(--warning)_75%,transparent)]",
     href && "hover:-translate-y-0.5 hover:border-[color-mix(in_oklab,var(--brand)_30%,transparent)] hover:shadow-[0_1px_2px_rgba(17,19,24,.05),0_18px_36px_-22px_rgba(36,87,255,.45)]",
   );
   return (
@@ -361,7 +361,9 @@ export function FilterTabs<T extends string>({
             onClick={() => onChange(o.value)}
             className={cn(
               "inline-flex h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-bold transition-colors",
-              active ? "border-ink bg-ink text-white" : "border-line bg-surface text-fg-muted hover:border-[var(--line-strong)] hover:text-fg",
+              active
+                ? "border-[color-mix(in_oklab,var(--brand)_55%,transparent)] bg-brand-50 text-brand-700 shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_10%,transparent)]"
+                : "border-line bg-surface text-fg-muted hover:border-[var(--line-strong)] hover:text-fg",
             )}
           >
             {o.label}
@@ -369,7 +371,7 @@ export function FilterTabs<T extends string>({
               <span
                 className={cn(
                   "min-w-6 rounded-full px-1.5 py-0.5 text-center text-[11px] leading-none tabular-nums",
-                  active ? "bg-white/20 text-white" : o.attention && o.count > 0 ? "bg-[color-mix(in_oklab,var(--warning)_25%,transparent)] text-[color-mix(in_oklab,var(--warning)_55%,var(--fg))]" : "bg-[color-mix(in_oklab,var(--fg)_7%,transparent)]",
+                  active ? "bg-brand/12 text-brand-700" : o.attention && o.count > 0 ? "bg-[color-mix(in_oklab,var(--warning)_25%,transparent)] text-[color-mix(in_oklab,var(--warning)_55%,var(--fg))]" : "bg-[color-mix(in_oklab,var(--fg)_7%,transparent)]",
                 )}
               >
                 {o.count}

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CarTaxiFront, Send } from "lucide-react";
 import { motion } from "motion/react";
-import { LogoMark } from "@/components/brand/Logo";
+import { AnimatedMark } from "@/components/brand/AnimatedLogo";
 import { api, type TicketDTO } from "@/lib/api";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { TICKET_CATEGORY_HE } from "@/lib/labels";
@@ -84,7 +84,7 @@ export function TicketThread({ id }: { id: string }) {
             <EmptyState title="לא מצאנו את הפנייה" description="ייתכן שהקישור שגוי." action={<Link href="/ride/support" className="btn btn-glass">לכל הפניות</Link>} />
           </div>
         ) : (
-          <InlineError error={error} action={<Button size="sm" variant="ink" onClick={load}>ניסיון חוזר</Button>} />
+          <InlineError error={error} action={<Button size="sm" variant="glass" onClick={load}>ניסיון חוזר</Button>} />
         )
       )}
       {!ticket && !error && (
@@ -113,8 +113,8 @@ export function TicketThread({ id }: { id: string }) {
                 transition={{ delay: Math.min(i, 6) * 0.04 }}
                 className={cn("flex items-end gap-2", b.mine ? "flex-row" : "flex-row-reverse")}
               >
-                {b.mine ? <Avatar name={name || "אני"} size={30} /> : <LogoMark size={30} />}
-                <div className={cn("max-w-[80%] rounded-[22px] px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap", b.mine ? "rounded-ee-md bg-brand text-white" : "rounded-es-md border border-line bg-surface")}>
+                {b.mine ? <Avatar name={name || "אני"} size={30} /> : <AnimatedMark size={30} hopOn="hover" title="צוות HOP" />}
+                <div className={cn("max-w-[80%] rounded-[22px] px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap", b.mine ? "chip-brand rounded-ee-md" : "rounded-es-md border border-line bg-surface shadow-[0_1px_2px_rgba(17,19,24,.04)]")}>
                   {!b.mine && <div className="mb-0.5 text-xs font-bold text-brand">צוות HOP</div>}
                   {b.body}
                   <div className={cn("mt-1 text-[10px] tabular-nums", b.mine ? "text-white/75" : "text-fg-muted")}>{formatDateTime(b.at)}</div>

@@ -4,6 +4,7 @@ import { MotionConfig } from "motion/react";
 import { ActiveRideProvider } from "@/components/rider/ActiveRideProvider";
 import { ActiveRideChip } from "@/components/rider/ActiveRideChip";
 import { RiderInfoContext } from "@/components/rider/RiderContext";
+import "@/components/rider/rider.css";
 
 /**
  * Rider app chrome: light theme, full-bleed content (map pages manage their

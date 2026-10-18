@@ -38,7 +38,7 @@ export function RateRide({ ride, onRated }: { ride: RideDTO; onRated?: (ride: Ri
 
   if (done != null) {
     return (
-      <div className="flex items-center gap-3 rounded-[22px] border border-line bg-surface/70 p-4" role="status">
+      <div className="tile flex items-center gap-3 rounded-[22px] p-4" role="status">
         <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-100 text-brand">
           <Heart size={18} aria-hidden />
         </span>
@@ -51,7 +51,7 @@ export function RateRide({ ride, onRated }: { ride: RideDTO; onRated?: (ride: Ri
   }
 
   return (
-    <div className="rounded-[22px] border border-line bg-surface/80 p-4" data-testid="rate-ride">
+    <div className="tile rounded-[22px] p-4" data-testid="rate-ride">
       <div className="text-sm font-bold">{ride.driver ? `איך הייתה הנסיעה עם ${ride.driver.name.split(/\s+/)[0]}?` : "איך הייתה הנסיעה?"}</div>
       <div className="mt-2 flex items-center justify-between gap-3">
         <StarRating value={stars} onChange={setStars} size={34} />
@@ -61,7 +61,7 @@ export function RateRide({ ride, onRated }: { ride: RideDTO; onRated?: (ride: Ri
       </div>
       <AnimatePresence initial={false}>
         {stars > 0 && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1, transitionEnd: { overflow: "visible" } }} exit={{ height: 0, opacity: 0, overflow: "hidden" }} className="overflow-hidden">
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1, transitionEnd: { overflow: "visible" } }} exit={{ height: 0, opacity: 0, overflow: "hidden" }} className="-mx-1 overflow-hidden px-1 pb-1.5">
             <Textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
@@ -72,7 +72,7 @@ export function RateRide({ ride, onRated }: { ride: RideDTO; onRated?: (ride: Ri
               className="mt-3 min-h-[76px]!"
             />
             {error && <InlineError error={error} className="mt-3" />}
-            <Button variant="ink" block className="mt-3" onClick={submit} loading={busy} data-testid="rate-submit">
+            <Button variant="glass" block className="mt-3 text-brand-700" onClick={submit} loading={busy} data-testid="rate-submit">
               שליחת דירוג
             </Button>
           </motion.div>

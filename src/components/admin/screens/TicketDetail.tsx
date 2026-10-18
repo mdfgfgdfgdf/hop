@@ -189,7 +189,7 @@ function Bubble({ author, at, body, fromUser, internal, index }: { author: strin
           "max-w-[min(560px,88%)] rounded-[22px] px-4 py-3",
           fromUser && "rounded-ss-md bg-[color-mix(in_oklab,var(--fg)_5%,transparent)]",
           !fromUser && !internal && "rounded-se-md bg-brand-50",
-          internal && "rounded-se-md border border-dashed border-[color-mix(in_oklab,var(--warning)_70%,transparent)] bg-[color-mix(in_oklab,var(--warning)_9%,var(--surface))]",
+          internal && "rounded-se-md border border-dashed border-[color-mix(in_oklab,var(--warning)_70%,transparent)] bg-surface",
         )}
       >
         <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
@@ -235,7 +235,7 @@ function Composer({ ticket, onSent }: { ticket: TicketDTO; onSent: (t: { ticket:
 
   return (
     <form
-      className={cn("border-t px-4 py-4 transition-colors sm:px-5", internal ? "border-[color-mix(in_oklab,var(--warning)_45%,transparent)] bg-[color-mix(in_oklab,var(--warning)_6%,var(--surface))]" : "border-line")}
+      className={cn("border-t px-4 py-4 transition-colors sm:px-5", internal ? "border-[color-mix(in_oklab,var(--warning)_55%,transparent)] bg-[color-mix(in_oklab,var(--fg)_2.5%,var(--surface))]" : "border-line")}
       onSubmit={(e) => {
         e.preventDefault();
         send();

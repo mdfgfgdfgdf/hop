@@ -34,8 +34,8 @@ export function QuoteCard({
   return (
     <div
       className={cn(
-        "rounded-[22px] border transition-[border-color,box-shadow,background-color]",
-        selected ? "border-brand bg-surface shadow-[0_0_0_3px_color-mix(in_oklab,var(--brand)_16%,transparent),0_14px_30px_-20px_rgba(36,87,255,.6)]" : "border-line bg-surface/60",
+        "rounded-[22px] transition-[box-shadow,background-color] duration-200",
+        selected ? "tile-selected" : "tile tile-hover",
         unavailable && "opacity-60",
       )}
     >
@@ -49,7 +49,12 @@ export function QuoteCard({
         className="flex min-h-[72px] w-full items-center gap-3 rounded-[22px] px-3 py-2.5 text-start disabled:cursor-not-allowed"
         data-testid={`quote-${quote.serviceType.id}`}
       >
-        <span className={cn("grid h-12 w-12 shrink-0 place-items-center rounded-2xl", selected ? "bg-brand text-white" : "bg-[color-mix(in_oklab,var(--fg)_7%,transparent)] text-fg")}>
+        <span
+          className={cn(
+            "grid h-12 w-12 shrink-0 place-items-center rounded-2xl transition-colors",
+            selected ? "bg-brand-100 text-brand shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--brand)_22%,transparent)]" : "well text-fg-muted",
+          )}
+        >
           <ServiceIcon quote={quote} />
         </span>
         <span className="min-w-0 flex-1">
@@ -72,7 +77,7 @@ export function QuoteCard({
           )}
         </span>
         <span className="flex shrink-0 flex-col items-end">
-          <CountUp className="text-lg font-extrabold ltr-nums" value={quote.riderTotalAgorot} format={(n) => formatILS(n)} />
+          <CountUp className={cn("text-lg font-extrabold ltr-nums", selected && "text-brand-700")} value={quote.riderTotalAgorot} format={(n) => formatILS(n)} />
           {discount > 0 && <span className="text-[11px] font-semibold text-fg-muted line-through ltr-nums">{formatILS(quote.riderTotalAgorot + discount)}</span>}
         </span>
       </button>
