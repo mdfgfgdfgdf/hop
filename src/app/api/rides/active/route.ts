@@ -1,11 +1,11 @@
 import { ok, route } from "@/server/api";
 import { requireUser } from "@/server/auth/guards";
 import { getActiveRideFor } from "@/server/dispatch/service";
-import { sweep } from "@/server/dispatch/scheduler";
+import { ensureScheduler } from "@/server/dispatch/scheduler";
 
 export const GET = route(async () => {
   const user = await requireUser(["rider", "driver"]);
-  await sweep();
+  ensureScheduler(); // reads never advance dispatch; the background sweep does
   const ride = await getActiveRideFor(user);
   return ok({ ride });
 });

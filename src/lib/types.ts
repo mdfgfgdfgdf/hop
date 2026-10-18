@@ -70,6 +70,11 @@ export type QuoteDTO = {
   availableDrivers: number;
 };
 
+export type CancellationPolicyDTO = {
+  freeCancelWindowSec: number; // after a driver accepts
+  feeAgorot: number;
+};
+
 export type QuoteResponse = {
   route: RouteDTO;
   pickup: PlaceDTO;
@@ -77,6 +82,7 @@ export type QuoteResponse = {
   quotes: QuoteDTO[];
   geoProvider: "demo" | "osm";
   isDemoTariff: boolean;
+  cancellationPolicy: CancellationPolicyDTO;
 };
 
 export type RideCounterpartDTO = {

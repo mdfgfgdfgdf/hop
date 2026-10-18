@@ -7,7 +7,7 @@ export function DemoBanner({ className, compact, text }: { className?: string; c
     <div
       role="note"
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/15 text-[11px] font-bold text-amber-900 dark:text-amber-200",
+        "inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/15 text-[11px] font-bold text-amber-900 [[data-theme=dark]_&]:text-amber-200",
         compact ? "px-2 py-0.5" : "px-3 py-1",
         className,
       )}

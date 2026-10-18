@@ -382,6 +382,7 @@
     white-space: nowrap;
   }
   .pill-brand { background: var(--brand-100); color: var(--brand-700); }
+  [data-theme="dark"] .pill-brand { background: rgba(36, 87, 255, 0.28); color: var(--brand-200); }
   .pill-ink { background: color-mix(in oklab, var(--fg) 10%, transparent); color: var(--fg); }
   .pill-success { background: color-mix(in oklab, var(--success) 16%, transparent); color: color-mix(in oklab, var(--success) 80%, var(--fg)); }
   .pill-warning { background: color-mix(in oklab, var(--warning) 22%, transparent); color: color-mix(in oklab, var(--warning) 60%, var(--fg)); }

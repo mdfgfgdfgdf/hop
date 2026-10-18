@@ -37,19 +37,6 @@ type Props = {
 };
 
 const DEFAULT_CENTER = { lat: 32.0753, lng: 34.7818 };
-const WORKER_URL = "/drive/map-worker";
-
-/** Points MapLibre at a served copy of its worker before any map is created. */
-let workerSetup: Promise<void> | null = null;
-function ensureMapWorker() {
-  workerSetup ??= import("maplibre-gl")
-    .then((m) => {
-      if (m.getWorkerUrl() !== WORKER_URL) m.setWorkerUrl(WORKER_URL);
-    })
-    .catch(() => {});
-  return workerSetup;
-}
-
 /** Best-effort dark palette for a light vector style (OpenMapTiles-like ids). */
 function darken(map: MLMap) {
   const layers = map.getStyle()?.layers ?? [];
@@ -120,14 +107,6 @@ export function DriverMap({
   const [following, setFollowing] = useState(true);
   const pad = useMemo<Padding>(() => ({ top: 90, bottom: 90, left: 40, right: 40, ...padding }), [padding]);
   const [initialCenter] = useState<LatLng>(() => me ?? pickup ?? DEFAULT_CENTER);
-  const [workerReady, setWorkerReady] = useState(false);
-  useEffect(() => {
-    let active = true;
-    void ensureMapWorker().then(() => active && setWorkerReady(true));
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const markers = useMemo<MapMarker[]>(() => {
     const out: MapMarker[] = [];
@@ -260,25 +239,17 @@ export function DriverMap({
     <div
       className={cn(
         "relative h-full w-full",
-        // maplibre-gl.css (unlayered) forces .maplibregl-map{position:relative}, collapsing
-        // MapView's absolutely-positioned container to 0px — pin it back to full size.
-        "[&_.maplibregl-map]:absolute! [&_.maplibregl-map]:inset-0!",
-        // Location halo on the driver's own position + legible offline grid in dark mode.
+        // Location halo on the driver's own position.
         "[&_.pin-me]:shadow-[0_0_0_7px_rgba(36,87,255,0.28),0_0_24px_6px_rgba(36,87,255,0.45)]",
         "[&_.hop-marker-car]:shadow-[0_0_0_6px_rgba(36,87,255,0.3),0_10px_24px_-8px_rgba(0,0,0,0.8)]",
-        "[&_[data-map-offline]>div[aria-hidden]>div:first-child]:[background-image:linear-gradient(rgba(255,255,255,.2)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.2)_1px,transparent_1px)]!",
         pulse &&
           "[&_.pin-me]:relative [&_.pin-me]:after:absolute [&_.pin-me]:after:-inset-4 [&_.pin-me]:after:animate-ping [&_.pin-me]:after:rounded-full [&_.pin-me]:after:bg-brand/35 [&_.pin-me]:after:content-['']",
         className,
       )}
     >
-      {workerReady ? (
-        <MapView theme="dark" center={initialCenter} zoom={15} markers={markers} polyline={polyline ?? null} interactive={interactive} onReady={onReady}>
-          {children}
-        </MapView>
-      ) : (
-        <div className="h-full w-full bg-[#0f1219]" aria-label="טוען מפה" />
-      )}
+      <MapView theme="dark" center={initialCenter} zoom={15} markers={markers} polyline={polyline ?? null} interactive={interactive} onReady={onReady}>
+        {children}
+      </MapView>
       {showRecenter && interactive && (
         <button
           type="button"

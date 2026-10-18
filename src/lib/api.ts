@@ -84,7 +84,7 @@ export const api = {
     reverse: (lat: number, lng: number, signal?: AbortSignal) =>
       apiFetch<{ place: PlaceDTO | null; provider: "demo" | "osm" }>(`/api/geo/reverse?lat=${lat}&lng=${lng}`, { signal }),
   },
-  serviceTypes: () => apiFetch<{ serviceTypes: ServiceTypeDTO[] }>("/api/service-types"),
+  serviceTypes: (opts: { all?: boolean } = {}) => apiFetch<{ serviceTypes: ServiceTypeDTO[] }>(`/api/service-types${opts.all ? "?all=1" : ""}`),
   quotes: {
     create: (input: { pickup: { lat: number; lng: number; address: string; name?: string; id?: string; provider?: "demo" | "osm" }; dropoff: { lat: number; lng: number; address: string; name?: string; id?: string; provider?: "demo" | "osm" }; promoCode?: string | null }) =>
       apiFetch<QuoteResponse>("/api/quotes", { method: "POST", body: input }),

@@ -241,6 +241,7 @@ export async function createQuotes(input: {
     quotes: quoteRows,
     geoProvider: route.provider,
     isDemoTariff: config.isDemo,
+    cancellationPolicy: { freeCancelWindowSec: config.freeCancelWindowSec, feeAgorot: config.cancellationFeeAgorot },
   };
 }
 
@@ -627,7 +628,8 @@ export async function completeRide(input: { driver: Actor; rideId: string }) {
       .where(eq(rideTrackPoints.rideId, ride.id))
       .orderBy(rideTrackPoints.recordedAt);
     const tracked = points.length >= 2 ? Math.round(polylineLengthM(points.map((p) => [p.lat, p.lng]))) : null;
-    const actualDistanceM = tracked ?? ride.estimatedDistanceM;
+    // A track that barely moved (GPS off, parked) is not evidence of a shorter ride.
+    const actualDistanceM = tracked != null && tracked >= 50 ? tracked : ride.estimatedDistanceM;
     const actualDurationS = Math.max(0, Math.round((now.getTime() - (ride.startedAt ?? now).getTime()) / 1000));
 
     // Upfront pricing: the rider pays what was quoted. Deviations are flagged

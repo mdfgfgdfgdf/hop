@@ -9,7 +9,7 @@
  *   <MapView center={{lat,lng}} zoom={14} markers={[...]} polyline={[[lat,lng],...]} onMoveEnd={...} />
  */
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
-import { Map as MLMap, Marker, LngLatBounds, setWorkerUrl, type StyleSpecification, type GeoJSONSource } from "maplibre-gl";
+import { Map as MLMap, Marker, LngLatBounds, setWorkerUrl, setRTLTextPlugin, getRTLTextPluginStatus, type StyleSpecification, type GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 // MapLibre resolves its web worker relative to the bundled chunk, which does
@@ -19,6 +19,30 @@ try {
   setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).href);
 } catch {
   /* keep MapLibre's default */
+}
+
+/** Hebrew/Arabic labels on vector tiles need the RTL text plugin (loaded lazily, only with real tiles). */
+function ensureRtlTextPlugin() {
+  try {
+    if (getRTLTextPluginStatus() === "unavailable") {
+      setRTLTextPlugin("https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.js", true);
+    }
+  } catch {
+    /* ignore — labels fall back to logical order */
+  }
+}
+
+/** Clamps fit padding so it can never exceed the map's own size (MapLibre throws on NaN bounds). */
+function safePadding(map: MLMap, padding: { top: number; bottom: number; left: number; right: number }) {
+  const { width, height } = map.getContainer().getBoundingClientRect();
+  const maxV = Math.max(0, Math.floor(height / 2) - 24);
+  const maxH = Math.max(0, Math.floor(width / 2) - 24);
+  return {
+    top: Math.min(padding.top, maxV),
+    bottom: Math.min(padding.bottom, maxV),
+    left: Math.min(padding.left, maxH),
+    right: Math.min(padding.right, maxH),
+  };
 }
 import type { LatLng, Polyline } from "@/lib/types";
 import { cn } from "@/components/ui/cn";
@@ -118,6 +142,7 @@ export function MapView({ center, zoom = 14, markers = [], polyline, fit, fitPad
     });
     map.touchZoomRotate.disableRotation();
     mapRef.current = map;
+    if (styleUrl) ensureRtlTextPlugin();
 
     let errored = false;
     map.on("error", (e: { error?: { message?: string } }) => {
@@ -215,17 +240,27 @@ export function MapView({ center, zoom = 14, markers = [], polyline, fit, fitPad
     else map.once("styledata", apply);
   }, [polyline, ready]);
 
-  // Fit bounds.
+  // Fit bounds (padding-aware for a single point too, so it is not hidden behind the sheet).
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !fit || fit.length === 0) return;
-    if (fit.length === 1) {
-      map.easeTo({ center: [fit[0].lng, fit[0].lat], zoom: 15, duration: 500 });
-      return;
+    const padding = safePadding(map, { top: 80, bottom: 320, left: 40, right: 40, ...fitPadding });
+    try {
+      if (fit.length === 1) {
+        map.easeTo({
+          center: [fit[0].lng, fit[0].lat],
+          zoom: Math.max(map.getZoom(), 15),
+          offset: [(padding.left - padding.right) / 2, (padding.top - padding.bottom) / 2],
+          duration: 500,
+        });
+        return;
+      }
+      const b = new LngLatBounds();
+      for (const p of fit) b.extend([p.lng, p.lat]);
+      map.fitBounds(b, { padding, maxZoom: 16, duration: 700 });
+    } catch (err) {
+      console.warn("[map] fit failed", err);
     }
-    const b = new LngLatBounds();
-    for (const p of fit) b.extend([p.lng, p.lat]);
-    map.fitBounds(b, { padding: { top: 80, bottom: 320, left: 40, right: 40, ...fitPadding }, maxZoom: 16, duration: 700 });
   }, [fit, fitPadding]);
 
   return (
@@ -237,11 +272,13 @@ export function MapView({ center, zoom = 14, markers = [], polyline, fit, fitPad
             className="absolute inset-0 opacity-[0.35]"
             style={{
               backgroundImage:
-                "linear-gradient(rgba(17,19,24,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(17,19,24,.12) 1px, transparent 1px)",
+                theme === "dark"
+                  ? "linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px)"
+                  : "linear-gradient(rgba(17,19,24,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(17,19,24,.12) 1px, transparent 1px)",
               backgroundSize: "48px 48px",
             }}
           />
-          <div className="absolute bottom-2 left-2 rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-bold text-ink-500" dir="rtl">
+          <div className={cn("absolute bottom-2 left-2 rounded-full px-2 py-0.5 text-[10px] font-bold", theme === "dark" ? "bg-white/15 text-white/70" : "bg-white/80 text-ink-500")} dir="rtl">
             מפה ללא אריחים (מצב לא מקוון)
           </div>
         </div>
