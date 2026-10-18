@@ -23,6 +23,7 @@ authoritative state (e.g. `api.rides.active()`).
   (route + one quote per enabled service type, each with full FareBreakdown, ETA, driver count)
 - `POST /api/rides` {quoteId, paymentMethod: "cash"|"card_demo"} → {ride}
 - `GET /api/rides/active` → {ride|null} · `GET /api/rides` (history) · `GET /api/rides/:id`
+- `GET /api/rides/nearby?lat&lng` (rider) → `{cars:[{id,lat,lng,heading,vehicleClass}]}`: available, approved, non-busy drivers within 3 km, max 8. `id` is a per-day anonymous token; coordinates are rounded to ~10 m; no names or plates.
 - `POST /api/rides/:id/cancel` {reason?} · `POST /api/rides/:id/rate` {stars, comment?}
 - `GET /api/rides/:id/events` (timeline)
 

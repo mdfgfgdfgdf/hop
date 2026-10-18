@@ -4,6 +4,7 @@
  * status, so two drivers can never accept the same ride and a ride can never
  * be started or completed twice — regardless of how many requests race.
  */
+import { createHash } from "node:crypto";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb, type Db, type Tx } from "../db/client";
 import {
@@ -347,6 +348,32 @@ async function availableDrivers(db: Db | Tx): Promise<Candidate[]> {
       r.profile.lastLocationAt >= since &&
       !busy.has(r.user.id),
   );
+}
+
+export type NearbyCar = { id: string; lat: number; lng: number; heading: number | null; vehicleClass: string };
+
+/**
+ * Available cars around a point, for the rider's map. Anonymous by design:
+ * a per-day token instead of the driver id, coordinates rounded to ~10 m,
+ * no names, plates or ratings. Busy drivers are excluded.
+ */
+export async function nearbyCars(at: { lat: number; lng: number }, opts: { radiusM?: number; limit?: number } = {}): Promise<NearbyCar[]> {
+  const radiusM = Math.min(opts.radiusM ?? 3000, 5000);
+  const limit = Math.min(opts.limit ?? 8, 12);
+  const day = new Date().toISOString().slice(0, 10);
+  const rows = await availableDrivers(await getDb());
+  return rows
+    .map((c) => ({ c, d: haversineM(at, { lat: c.profile.lastLat!, lng: c.profile.lastLng! }) }))
+    .filter((x) => x.d <= radiusM)
+    .sort((a, b) => a.d - b.d)
+    .slice(0, limit)
+    .map(({ c }) => ({
+      id: createHash("sha256").update(`${day}:${c.user.id}`).digest("hex").slice(0, 12),
+      lat: Math.round(c.profile.lastLat! * 1e4) / 1e4,
+      lng: Math.round(c.profile.lastLng! * 1e4) / 1e4,
+      heading: c.profile.lastHeading ?? null,
+      vehicleClass: c.profile.vehicleClass,
+    }));
 }
 
 /** Scores candidates for a ride: nearest first, honouring class/exclusions. */

@@ -3,6 +3,7 @@
  * Every call returns parsed JSON or throws ApiClientError { code, message }.
  */
 import type {
+  NearbyCarDTO,
   DriverDocumentDTO,
   DriverProfileDTO,
   EarningsDTO,
@@ -93,6 +94,8 @@ export const api = {
     create: (input: { quoteId: string; paymentMethod: "cash" | "card_demo" }) => apiFetch<{ ride: RideDTO }>("/api/rides", { method: "POST", body: input }),
     list: (opts: { limit?: number; offset?: number } = {}) => apiFetch<{ rides: RideDTO[] }>(`/api/rides?limit=${opts.limit ?? 30}&offset=${opts.offset ?? 0}`),
     active: () => apiFetch<{ ride: RideDTO | null }>("/api/rides/active"),
+    /** Anonymous available cars around a point (for the rider map). */
+    nearby: (at: { lat: number; lng: number }) => apiFetch<{ cars: NearbyCarDTO[] }>(`/api/rides/nearby?lat=${at.lat}&lng=${at.lng}`),
     get: (id: string) => apiFetch<{ ride: RideDTO }>(`/api/rides/${id}`),
     events: (id: string) => apiFetch<{ events: RideEventDTO[] }>(`/api/rides/${id}/events`),
     cancel: (id: string, reason?: string | null) => apiFetch<{ ride: RideDTO }>(`/api/rides/${id}/cancel`, { method: "POST", body: { reason: reason ?? null } }),

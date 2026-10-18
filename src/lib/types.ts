@@ -225,3 +225,6 @@ export type SseEvent = {
 };
 
 export type ApiError = { error: { code: string; message: string; details?: unknown } };
+
+/** An available car near the rider: anonymous per-day token, ~10 m precision. */
+export type NearbyCarDTO = { id: string; lat: number; lng: number; heading: number | null; vehicleClass: string };
