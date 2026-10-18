@@ -40,9 +40,8 @@ export function LoginForm() {
   }
 
   return (
-    <div className="glass glass-strong animate-fade-up p-6 sm:p-7">
-      <h1 className="display text-[30px]">ברוכים השבים</h1>
-      <p className="mt-1.5 text-sm text-fg-muted">התחברו כדי להמשיך לנסיעה הבאה</p>
+    <div>
+      <h1 className="text-[28px] font-bold leading-tight">התחברות</h1>
       <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
         <Field label="אימייל">
           {(id) => <Input id={id} type="email" autoComplete="email" inputMode="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} required />}
@@ -51,7 +50,7 @@ export function LoginForm() {
           {(id) => <Input id={id} type="password" autoComplete="current-password" dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} required />}
         </Field>
         {error && (
-          <div role="alert" data-testid="login-error" className="rounded-2xl border border-danger/20 bg-danger/10 px-3.5 py-2.5 text-sm font-semibold text-danger">
+          <div role="alert" data-testid="login-error" className="rounded-lg bg-danger/10 px-3.5 py-2.5 text-sm font-medium text-danger-ink">
             {error}
           </div>
         )}
@@ -59,10 +58,9 @@ export function LoginForm() {
           התחברות
         </Button>
       </form>
-      <div className="divider mt-6" />
-      <p className="mt-5 text-center text-sm text-fg-muted">
+      <p className="mt-6 text-sm text-fg-muted">
         עדיין אין חשבון?{" "}
-        <Link href="/signup" className="font-bold text-brand hover:underline">
+        <Link href="/signup" className="font-semibold text-fg underline underline-offset-2">
           הרשמה
         </Link>
       </p>

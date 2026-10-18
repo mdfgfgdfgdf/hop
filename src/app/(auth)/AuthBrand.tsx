@@ -1,12 +1,12 @@
 "use client";
 /**
- * Auth chrome: the living HOP wordmark above the form card. It hops on mount,
- * revs its needle while a form is submitting and hops again on success. The
- * forms drive it through `useAuthBrand()`.
+ * Auth chrome: a plain white page with the HOP wordmark in the header. The
+ * needle in the "o" revs while a form is submitting; the forms drive it
+ * through `useAuthBrand()`.
  */
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { X } from "lucide-react";
 import { AnimatedLogo, type LogoMode } from "@/components/brand/AnimatedLogo";
 
 type Phase = "idle" | "submitting" | "success";
@@ -20,31 +20,20 @@ export function useAuthBrand() {
 
 export function AuthBrandProvider({ children }: { children: React.ReactNode }) {
   const [phase, setPhaseState] = useState<Phase>("idle");
-  const [successes, setSuccesses] = useState(0);
-  const setPhase = useCallback((p: Phase) => {
-    setPhaseState(p);
-    if (p === "success") setSuccesses((n) => n + 1);
-  }, []);
+  const setPhase = useCallback((p: Phase) => setPhaseState(p), []);
   const value = useMemo(() => ({ phase, setPhase }), [phase, setPhase]);
   const mode: LogoMode = phase === "submitting" ? "loading" : phase === "success" ? "success" : "idle";
   return (
     <Ctx.Provider value={value}>
-      <header className="mx-auto flex w-full max-w-md items-center justify-between px-5 pt-5 sm:pt-7">
-        <Link href="/" className="btn btn-glass btn-sm ps-3" aria-label="חזרה לדף הבית של HOP">
-          <ArrowRight size={16} aria-hidden />
-          לדף הבית
+      <header className="mx-auto flex h-16 w-full max-w-[440px] items-center justify-between px-5">
+        <Link href="/" aria-label="HOP — לדף הבית" className="-ms-1 rounded-md p-1">
+          <AnimatedLogo height={24} mode={mode} hopOn="none" title="HOP" />
         </Link>
-        <span className="text-[11px] font-extrabold tracking-[0.28em] text-fg-muted" dir="ltr">
-          MOVE WITH HOP
-        </span>
+        <Link href="/" className="grid h-10 w-10 place-items-center rounded-full text-fg hover:bg-[#f3f3f5]" aria-label="סגירה וחזרה לדף הבית">
+          <X size={22} aria-hidden />
+        </Link>
       </header>
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-5 pt-6 pb-10">
-        <div className="mb-6 flex justify-center">
-          {/* hopKey stays undefined until the first success so mount hops only once */}
-          <AnimatedLogo height={58} mode={mode} hopOn="both" hopKey={successes || undefined} title="HOP" />
-        </div>
-        {children}
-      </div>
+      <div className="mx-auto w-full max-w-[440px] flex-1 px-5 pt-4 pb-10 sm:pt-10">{children}</div>
     </Ctx.Provider>
   );
 }
