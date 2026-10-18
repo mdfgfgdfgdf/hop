@@ -41,12 +41,12 @@ authoritative state (e.g. `api.rides.active()`).
 - `GET /api/support/tickets/:id` · `POST /api/support/tickets/:id/messages` {body}
 
 ## Admin / support staff
-- `GET /api/admin/overview` KPIs + recent rides + live drivers
+- `GET /api/admin/overview` KPIs + recent rides + live drivers · `GET /api/admin/counts` light counters (drivers by status, active rides, open/urgent tickets)
 - `GET /api/admin/drivers?status=&q=` · `GET /api/admin/drivers/:id` · `POST …/:id/verify` {decision: approve|reject|suspend|reinstate, reason?, notes?}
   · `POST /api/admin/drivers/:id/documents/:docId` {status: approved|rejected, notes?}
 - `GET /api/admin/users?role=&status=&q=` · `GET /api/admin/users/:id` · `PATCH /api/admin/users/:id` {status?, reason?, role?} (role change = admin only)
-- `GET /api/admin/rides?status=active|…&flagged=true&q=&from=&to=` · `GET /api/admin/rides/:id` (events, offers, ledger, track)
-  · `POST /api/admin/rides/:id/cancel` {reason} · `POST /api/admin/rides/:id/adjust` {refundAgorot?, note}
+- `GET /api/admin/rides?status=active|…&flagged=true&q=&from=&to=` (q matches addresses, ride id, rider/driver name, phone or email) · `GET /api/admin/rides/:id` (events, offers with driver names, ledger, track)
+  · `POST /api/admin/rides/:id/cancel` {reason} · `POST /api/admin/rides/:id/adjust` {refundAgorot?, note} (notes on any ride; refunds only on completed/cancelled)
 - `GET/PUT /api/admin/pricing` (PUT creates a new active tariff version; admin only)
 - `GET /api/admin/service-types` · `PATCH /api/admin/service-types/:id` (cannot enable unapproved)
 - `GET /api/admin/reports?from=&to=` · `GET /api/admin/audit?action=&actorId=`
