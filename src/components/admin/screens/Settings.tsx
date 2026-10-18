@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { Info, Save, Scale, Undo2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { useMapConfig } from "@/lib/map-config";
 import { Button, DemoBanner, Toggle, useToast, cn } from "@/components/ui";
 import { useAdmin } from "../context";
 import { useLoad } from "../hooks";
@@ -213,6 +214,8 @@ function SettingsForm({ settings, defaults, onSaved }: { settings: Record<string
           </FormSection>
         </Panel>
 
+        <MapProvidersPanel />
+
         {isAdmin && (
           <div className="card flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 lg:col-span-2 sm:px-5">
             <span className="text-sm text-fg-muted">{!valid ? "יש שדות לא תקינים" : changed ? (changed === 1 ? "שינוי אחד ממתין לשמירה" : `${changed} שינויים ממתינים לשמירה`) : "אין שינויים"}</span>
@@ -233,5 +236,34 @@ function SettingsForm({ settings, defaults, onSaved }: { settings: Record<string
       </form>
       {dialog}
     </Page>
+  );
+}
+
+const ROUTER_HE = { google: "Google Routes", mapbox: "Mapbox (driving-traffic)", tomtom: "TomTom" } as const;
+
+/** Read-only: which map / traffic providers the server is using (configured by environment variables). */
+function MapProvidersPanel() {
+  const cfg = useMapConfig();
+  return (
+    <Panel title="מפות ותנועה" description="מוגדר במשתני הסביבה של השרת (המפתחות לא נחשפים כאן)" flush>
+      <FormSection title="ספקים פעילים">
+        <dl className="space-y-2 text-sm">
+          <div className="flex justify-between gap-3">
+            <dt className="text-fg-muted">ניתוב וזמני הגעה</dt>
+            <dd className="font-bold">{cfg.trafficRouting ? `${ROUTER_HE[cfg.trafficRouting]} — כולל תנועה בזמן אמת` : cfg.geoProvider === "demo" ? "הערכה לא מקוונת (הדגמה)" : "OSRM — כבישים אמיתיים, ללא תנועה בזמן אמת"}</dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-fg-muted">שכבת עומסים על המפה</dt>
+            <dd className="font-bold">{cfg.trafficTiles ? "TomTom Traffic Flow — פעילה" : "כבויה"}</dd>
+          </div>
+        </dl>
+        {!cfg.trafficRouting && (
+          <p className="mt-3 flex items-start gap-1.5 text-xs text-fg-muted">
+            <Info size={13} className="mt-0.5 shrink-0" aria-hidden />
+            להפעלת תנועה בזמן אמת הגדירו GOOGLE_MAPS_API_KEY, MAPBOX_ACCESS_TOKEN או TOMTOM_API_KEY בשרת (ראו ‎.env.example).
+          </p>
+        )}
+      </FormSection>
+    </Panel>
   );
 }

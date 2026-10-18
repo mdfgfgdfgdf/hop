@@ -2,12 +2,13 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { GeoJSONSource, Map as MLMap } from "maplibre-gl";
-import { AlertTriangle, ArrowLeft, Ban, Car, CircleDollarSign, MessageSquarePlus, Phone, Star, UserRound } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Ban, Car, CircleDollarSign, MessageSquarePlus, MessagesSquare, Phone, Star, UserRound } from "lucide-react";
 import { api, type AdminRideDetail } from "@/lib/api";
 import { formatDateTime, formatDistance, formatDuration, formatEta, formatILS, formatRelative, formatTime } from "@/lib/format";
 import { CANCELLED_BY_HE, CANCEL_REASONS_HE, LEDGER_TYPE_HE, PAYMENT_METHOD_HE, PAYMENT_STATUS_HE, VEHICLE_CLASS_HE } from "@/lib/labels";
 import { ilsToAgorot } from "@/lib/money";
-import type { RideDTO } from "@/lib/types";
+import type { RideDTO, RideMessageDTO } from "@/lib/types";
+import { TRAFFIC_LABELS, trafficDelayMin, worstLevel } from "@/lib/traffic";
 import { Button, EmptyState, Field, Input, Pill, useToast, cn } from "@/components/ui";
 import { MapView, type MapMarker } from "@/components/map";
 import { readAdminRide, readDriverLocation, useAdminFeed } from "../realtime";
@@ -34,6 +35,8 @@ const EVENT_HE: Record<string, string> = {
   cancelled: "הנסיעה בוטלה",
   driver_cancelled: "הנהג ביטל לאחר אישור",
   rated: "התקבל דירוג",
+  tip_added: "הנוסע הוסיף טיפ",
+  share_created: "הנוסע שיתף קישור מעקב",
 };
 
 const ACTOR_HE: Record<string, string> = { rider: "נוסע", driver: "נהג", admin: "מנהל", support: "תמיכה", system: "מערכת" };
@@ -67,6 +70,8 @@ function eventDetail(e: AdminRideDetail["events"][number], driverNames: Map<stri
     }
     case "driver_cancelled":
       return str("reason");
+    case "tip_added":
+      return num("amountAgorot") != null ? `${formatILS(num("amountAgorot")!)} · 100% לנהג` : null;
     case "completed": {
       const flags = Array.isArray(d.flags) ? (d.flags as unknown[]).length : 0;
       return [num("actualDistanceM") != null ? formatDistance(num("actualDistanceM")) : null, num("actualDurationS") != null ? formatDuration(num("actualDurationS")) : null, flags ? `${flags} דגלים` : null].filter(Boolean).join(" · ") || null;
@@ -208,6 +213,7 @@ export function RideDetail({ id }: { id: string }) {
                   <span className="text-fg-muted">בפועל: </span>
                   <span className="tabular-nums">{ride.actualDistanceM != null ? `${formatDistance(ride.actualDistanceM)} · ${formatDuration(ride.actualDurationS)}` : "—"}</span>
                 </span>
+                <TrafficNote ride={ride} />
               </div>
             </div>
           </Panel>
@@ -295,6 +301,7 @@ export function RideDetail({ id }: { id: string }) {
         <div className="min-w-0 space-y-5">
           <PeoplePanel ride={ride} />
           <MoneyPanel ride={ride} ledger={ledger} />
+          <ChatPanel rideId={ride.id} />
           <Panel title="הערות מפעיל">
             {ride.adminNotes ? (
               <ul className="space-y-2">
@@ -462,6 +469,52 @@ function PeoplePanel({ ride }: { ride: RideDTO }) {
   );
 }
 
+/** Traffic measured when the ride was quoted (only when a traffic-aware router was configured). */
+function TrafficNote({ ride }: { ride: RideDTO }) {
+  if (!ride.traffic) return <span className="text-fg-muted">תנועה: ללא נתוני זמן אמת</span>;
+  const delay = trafficDelayMin(ride.traffic, ride.estimatedDurationS);
+  const worst = worstLevel(ride.traffic.spans);
+  return (
+    <span>
+      <span className="text-fg-muted">תנועה בעת ההזמנה: </span>
+      {worst ? TRAFFIC_LABELS[worst] : "זורמת"}
+      {delay ? ` · +${delay} דק׳` : ""}
+      <span className="text-fg-muted"> ({ride.traffic.source})</span>
+    </span>
+  );
+}
+
+/** The rider ↔ driver chat, read-only for staff (safety reviews and disputes). */
+function ChatPanel({ rideId }: { rideId: string }) {
+  const { data, error, loading } = useLoad(`ride-chat-${rideId}`, () => api.rides.messages(rideId));
+  const messages: RideMessageDTO[] = data?.messages ?? [];
+  return (
+    <Panel title="שיחת נוסע–נהג" description="לקריאה בלבד · לבירורי בטיחות ותלונות">
+      {loading ? (
+        <Muted>טוען…</Muted>
+      ) : error ? (
+        <Muted>{error}</Muted>
+      ) : messages.length === 0 ? (
+        <div className="flex items-center gap-2 text-sm text-fg-muted">
+          <MessagesSquare size={16} aria-hidden />
+          לא נשלחו הודעות.
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {messages.map((m) => (
+            <li key={m.id} className={cn("max-w-[85%] rounded-2xl px-3 py-2 text-sm", m.senderRole === "rider" ? "ms-auto bg-brand-50" : "me-auto bg-[color-mix(in_oklab,var(--fg)_5%,transparent)]")}>
+              <div className="text-xs font-bold text-fg-muted">
+                {m.senderRole === "rider" ? "נוסע" : "נהג"} · {m.senderName} · {formatTime(m.createdAt)}
+              </div>
+              <div className="whitespace-pre-wrap break-words">{m.body}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
+  );
+}
+
 function MoneyRow({ label, value, strong, tone, hint }: { label: string; value: React.ReactNode; strong?: boolean; tone?: "danger" | "muted"; hint?: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-1.5">
@@ -484,6 +537,7 @@ function MoneyPanel({ ride, ledger }: { ride: RideDTO; ledger: AdminRideDetail["
         <MoneyRow label="מחיר סופי (נוסע שילם)" value={isFinal ? formatILS(ride.finalTotalAgorot!) : <Muted>טרם נקבע</Muted>} strong />
         <MoneyRow label="עמלת HOP" value={ride.commissionAgorot != null ? formatILS(ride.commissionAgorot) : <Muted>—</Muted>} hint={`${(fare.commissionPercentBp / 100).toFixed(fare.commissionPercentBp % 100 ? 1 : 0)}% + דמי הזמנה`} />
         <MoneyRow label="תשלום לנהג" value={ride.driverPayoutAgorot != null ? formatILS(ride.driverPayoutAgorot) : <Muted>—</Muted>} />
+        <MoneyRow label="טיפ לנהג" value={ride.tipAgorot ? formatILS(ride.tipAgorot) : <Muted>—</Muted>} hint={ride.tipAgorot ? "100% לנהג, ללא עמלה" : undefined} />
         <MoneyRow label="דמי ביטול" value={ride.cancellationFeeAgorot ? formatILS(ride.cancellationFeeAgorot) : <Muted>—</Muted>} />
         <MoneyRow label="הוחזר לנוסע" value={ride.refundedAgorot ? formatILS(-ride.refundedAgorot) : <Muted>—</Muted>} tone={ride.refundedAgorot ? "danger" : undefined} />
         <MoneyRow label="סטטוס תשלום" value={<Pill tone={ride.paymentStatus === "paid" ? "success" : ride.paymentStatus.includes("refunded") ? "danger" : "muted"}>{PAYMENT_STATUS_HE[ride.paymentStatus]}</Pill>} />

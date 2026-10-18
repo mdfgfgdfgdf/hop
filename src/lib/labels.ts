@@ -66,6 +66,8 @@ export const LEDGER_TYPE_HE = {
   refund: "החזר",
   adjustment: "התאמה",
   processing_fee: "עמלת סליקה",
+  tip_charge: "טיפ (חיוב נוסע)",
+  tip_payout: "טיפ לנהג",
 } as const;
 
 export const CANCEL_REASONS_HE: Record<string, string> = {
