@@ -18,6 +18,10 @@ pnpm db:migrate && pnpm db:seed
 GEO_PROVIDER=osm
 NOMINATIM_URL=https://your-nominatim      # public OSM servers are rate-limited; self-host for a pilot
 OSRM_URL=https://your-osrm
+# live traffic (pick one; keys server-side only, restricted by API + server IP)
+GOOGLE_MAPS_API_KEY=...        # Routes API
+# MAPBOX_ACCESS_TOKEN=...      # Directions (driving-traffic)
+# TOMTOM_API_KEY=...           # Routing + Traffic Flow tiles (overlay)
 NEXT_PUBLIC_MAP_STYLE_URL=https://tiles.openfreemap.org/styles/liberty
 ```
 

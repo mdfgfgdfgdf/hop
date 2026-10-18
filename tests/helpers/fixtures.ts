@@ -155,6 +155,7 @@ export function ride(overrides: Partial<Ride> = {}): Ride {
     dropoffLat: 32.0807,
     dropoffLng: 34.7805,
     dropoffAddress: "כיכר רבין",
+    traffic: null,
     polyline: [
       [32.0752, 34.7751],
       [32.0807, 34.7805],

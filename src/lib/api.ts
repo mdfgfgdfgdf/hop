@@ -3,6 +3,7 @@
  * Every call returns parsed JSON or throws ApiClientError { code, message }.
  */
 import type {
+  RouteDTO,
   NearbyCarDTO,
   DriverDocumentDTO,
   DriverProfileDTO,
@@ -84,6 +85,9 @@ export const api = {
     },
     reverse: (lat: number, lng: number, signal?: AbortSignal) =>
       apiFetch<{ place: PlaceDTO | null; provider: "demo" | "osm" }>(`/api/geo/reverse?lat=${lat}&lng=${lng}`, { signal }),
+    /** Road route with live traffic when available (navigation / live ETA; never used for prices). */
+    route: (from: { lat: number; lng: number }, to: { lat: number; lng: number }) =>
+      apiFetch<{ route: RouteDTO }>(`/api/geo/route?fromLat=${from.lat}&fromLng=${from.lng}&toLat=${to.lat}&toLng=${to.lng}`),
   },
   serviceTypes: (opts: { all?: boolean } = {}) => apiFetch<{ serviceTypes: ServiceTypeDTO[] }>(`/api/service-types${opts.all ? "?all=1" : ""}`),
   quotes: {

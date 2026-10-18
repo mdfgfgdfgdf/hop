@@ -167,6 +167,18 @@ export const consentTypeEnum = pgEnum("consent_type", [
 export type LatLng = { lat: number; lng: number };
 export type Polyline = [number, number][]; // [lat, lng]
 
+/** Congestion along a route, as polyline point index ranges (inclusive). Free flow is omitted. */
+export type TrafficLevel = "moderate" | "heavy" | "severe";
+export type TrafficSpan = { from: number; to: number; level: TrafficLevel };
+export type RouteTraffic = {
+  source: "google" | "mapbox" | "tomtom";
+  /** Duration without traffic, when the provider reports it. */
+  durationNoTrafficS: number | null;
+  spans: TrafficSpan[];
+  /** When the traffic was measured (ISO). */
+  at: string;
+};
+
 export type FareLine = {
   key: string;
   label: string;
@@ -421,6 +433,7 @@ export const quotes = pgTable(
     distanceM: integer("distance_m").notNull(),
     durationS: integer("duration_s").notNull(),
     polyline: jsonb("polyline").$type<Polyline>().notNull(),
+    traffic: jsonb("traffic").$type<RouteTraffic>(),
     geoProvider: text("geo_provider").notNull(),
     fare: jsonb("fare").$type<FareBreakdown>().notNull(),
     riderTotalAgorot: integer("rider_total_agorot").notNull(),
@@ -452,6 +465,7 @@ export const rides = pgTable(
     dropoffLng: doublePrecision("dropoff_lng").notNull(),
     dropoffAddress: text("dropoff_address").notNull(),
     polyline: jsonb("polyline").$type<Polyline>().notNull(),
+    traffic: jsonb("traffic").$type<RouteTraffic>(),
     estimatedDistanceM: integer("estimated_distance_m").notNull(),
     estimatedDurationS: integer("estimated_duration_s").notNull(),
     actualDistanceM: integer("actual_distance_m"),

@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { MapView, type MapMarker } from "@/components/map";
 import type { Polyline } from "@/lib/types";
+import { trafficSegments } from "@/lib/traffic";
 
 const PICKUP = { lat: 32.0752, lng: 34.7751 };
 const ROUTE: Polyline = [
@@ -58,6 +59,9 @@ export function MapLab() {
     return [[car.lat, car.lng], ...ROUTE.slice(i)] as Polyline;
   }, [s, tick]);
 
+  // Synthetic congestion (lab only) to preview how live traffic is drawn.
+  const traffic = useMemo(() => (polyline ? trafficSegments(polyline, [{ from: 2, to: 4, level: "moderate" }, { from: 4, to: 6, level: "heavy" }, { from: 7, to: 8, level: "severe" }]) : null), [polyline]);
+
   return (
     <div className="h-dvh w-full">
       <MapView
@@ -67,6 +71,8 @@ export function MapLab() {
         bearing={s === "ride" ? -18 : 0}
         markers={markers}
         polyline={polyline}
+        traffic={traffic}
+        trafficTiles
         radar={s === "search" ? PICKUP : null}
         ambient={s === "home"}
       />

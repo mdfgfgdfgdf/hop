@@ -103,6 +103,7 @@ export function serializeRide(
     pickup: { lat: ride.pickupLat, lng: ride.pickupLng, address: ride.pickupAddress },
     dropoff: { lat: ride.dropoffLat, lng: ride.dropoffLng, address: ride.dropoffAddress },
     polyline: ride.polyline,
+    traffic: ride.traffic ?? null,
     estimatedDistanceM: ride.estimatedDistanceM,
     estimatedDurationS: ride.estimatedDurationS,
     actualDistanceM: ride.actualDistanceM,

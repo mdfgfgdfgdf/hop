@@ -60,6 +60,7 @@ Playwright in a container with a pre-installed Chromium: `PW_CHROMIUM_PATH=/opt/
 - `HOP_DEMO_MODE` — seeds demo users/drivers, enables the autopilot, shows the DEMO banner.
 - `GEO_PROVIDER` — `osm` (default): **live map data, no API keys** — Photon search-as-you-type, Nominatim reverse geocoding (Hebrew), OSRM road routing; each call has a timeout, a cache and a circuit breaker, and falls back to a clearly-labelled estimate if a service is down. `demo` = offline only (used by the tests).
 - `NEXT_PUBLIC_MAP_STYLE_URL` — MapLibre style; default OpenFreeMap "positron" (light vector tiles, no key). Hebrew labels are shaped by the RTL text plugin served from `/map/rtl-text`. Empty → flat offline canvas.
+- **Live traffic** (optional): set one of `GOOGLE_MAPS_API_KEY` (Routes API), `MAPBOX_ACCESS_TOKEN` (Directions, `driving-traffic`) or `TOMTOM_API_KEY` (Routing + Traffic Flow). Quotes, ETAs and driver navigation then use traffic-aware durations and the route is coloured by congestion. TomTom also enables the live traffic overlay, whose tiles are proxied by the server so the key never reaches the browser. Without a key, routing is OSRM (real roads, no live traffic) and the UI never claims traffic data. Check `/api/health` → `trafficRouting`, `trafficTiles`.
 - Before real traffic, point `PHOTON_URL`, `NOMINATIM_URL`, `OSRM_URL` at your own instances (the public servers are for light use) and set `HOP_GEO_CONTACT` to a real address.
 - `HOP_SESSION_SECRET`, `HOP_ADMIN_EMAIL`, `HOP_ADMIN_PASSWORD` — change in production.
 

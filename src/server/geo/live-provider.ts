@@ -1,8 +1,10 @@
 /**
- * Live geo provider — real map data, no API keys required:
+ * Live geo provider — real map data (keys only needed for live traffic):
  *   search   → Photon (komoot)        built for search-as-you-type (Nominatim forbids autocomplete)
  *   reverse  → Nominatim (OSM)        accept-language=he, ≤ 1 request/second as its policy requires
- *   route    → OSRM                   real road distance, duration and geometry
+ *   route    → a traffic-aware router when a key is configured (Google, Mapbox or
+ *              TomTom, see traffic-routing.ts), else OSRM: real road distance,
+ *              duration and geometry
  *
  * Every call has a timeout, results are cached, and a circuit breaker skips a
  * service for a while after it fails. When a live call fails the demo provider
@@ -11,8 +13,9 @@
  * instances before real traffic — the public servers are for light use only.
  */
 import type { LatLng } from "../db/schema";
-import { env } from "../env";
+import { env, trafficRouter } from "../env";
 import { DemoGeoProvider } from "./demo-provider";
+import { trafficRoute } from "./traffic-routing";
 import type { GeoProvider, Place, RouteResult } from "./types";
 
 const ISRAEL_BBOX = { minLng: 34.2, minLat: 29.4, maxLng: 35.95, maxLat: 33.35 };
@@ -181,9 +184,11 @@ export class LiveGeoProvider implements GeoProvider {
   private searchCache = new TtlCache<Place[]>(10 * 60_000);
   private reverseCache = new TtlCache<Place | null>(60 * 60_000);
   private routeCache = new TtlCache<RouteResult>(10 * 60_000);
+  private trafficCache = new TtlCache<RouteResult>(2 * 60_000, 1000);
   private photon = new Breaker(60_000);
   private nominatim = new Breaker(60_000);
   private osrm = new Breaker(60_000);
+  private traffic = new Breaker(60_000);
   private nominatimGate = new Throttle(1100);
 
   constructor(private fetchImpl: typeof fetch = (...args) => fetch(...args)) {}
@@ -258,6 +263,23 @@ export class LiveGeoProvider implements GeoProvider {
 
   async route(from: LatLng, to: LatLng): Promise<RouteResult> {
     const key = `${from.lat.toFixed(5)},${from.lng.toFixed(5)}>${to.lat.toFixed(5)},${to.lng.toFixed(5)}`;
+    // Traffic-aware provider first (live traffic changes, so it is cached briefly).
+    const router = trafficRouter();
+    if (router && !this.traffic.open) {
+      const hitT = this.trafficCache.get(key);
+      if (hitT) return hitT;
+      try {
+        const e = env();
+        const apiKey = (router === "google" ? e.GOOGLE_MAPS_API_KEY : router === "mapbox" ? e.MAPBOX_ACCESS_TOKEN : e.TOMTOM_API_KEY)!;
+        const route = await trafficRoute(router, apiKey, from, to, this.fetchImpl);
+        this.traffic.reset();
+        this.trafficCache.set(key, route);
+        return route;
+      } catch (err) {
+        this.traffic.trip();
+        console.warn(`[geo] ${router} routing unavailable, using OSRM (no live traffic):`, (err as Error).message);
+      }
+    }
     const hit = this.routeCache.get(key);
     if (hit) return hit;
     if (!this.osrm.open) {

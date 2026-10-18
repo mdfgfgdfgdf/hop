@@ -15,7 +15,8 @@ src/
     db/        schema (Drizzle, Postgres dialect), client (PGlite | PostgreSQL), seed
     auth/      argon2 passwords, hashed session tokens, role guards
     pricing/   fare engine (pure) + tariff config
-    geo/       providers: demo (offline) | osm (Nominatim + OSRM), haversine, service areas
+    geo/       providers: demo (offline) | osm (Photon + Nominatim + OSRM), traffic-aware routing
+               (Google Routes / Mapbox driving-traffic / TomTom), traffic tile proxy, haversine, service areas
     dispatch/  ride state machine, matching, offers, cancellation, completion, serializers
     realtime/  in-process event bus → SSE
     driver/ support/ admin/  application services

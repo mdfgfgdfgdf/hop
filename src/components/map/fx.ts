@@ -6,6 +6,7 @@
  * restyle them (the driver map dashes the pickup guide).
  */
 import type { ExpressionSpecification, GeoJSONSource, Map as MLMap } from "maplibre-gl";
+import { TRAFFIC_COLORS, type TrafficSegment } from "@/lib/traffic";
 
 export const BRAND = "#2457FF";
 
@@ -44,6 +45,21 @@ export function installOverlays(map: MLMap, route: number[][] | null, trail: num
       },
     });
   }
+  if (!map.getSource("hop-traffic")) {
+    map.addSource("hop-traffic", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+  }
+  if (!map.getLayer("hop-traffic-line")) {
+    map.addLayer({
+      id: "hop-traffic-line",
+      type: "line",
+      source: "hop-traffic",
+      layout: cap,
+      paint: {
+        "line-width": 6,
+        "line-color": ["match", ["get", "level"], "severe", TRAFFIC_COLORS.severe, "heavy", TRAFFIC_COLORS.heavy, TRAFFIC_COLORS.moderate],
+      },
+    });
+  }
   if (!map.getLayer("hop-route-flow")) {
     map.addLayer({ id: "hop-route-flow", type: "line", source: "hop-route", layout: cap, paint: { "line-width": 3.5, "line-gradient": cometGradient(-1), "line-opacity": 0.9 } });
   }
@@ -65,6 +81,30 @@ export function installOverlays(map: MLMap, route: number[][] | null, trail: num
 export function setLine(map: MLMap, id: "hop-route" | "hop-trail", coords: number[][] | null) {
   const src = map.getSource(id) as GeoJSONSource | undefined;
   src?.setData(lineFC(coords));
+}
+
+export function setTraffic(map: MLMap, segments: TrafficSegment[] | null | undefined) {
+  const src = map.getSource("hop-traffic") as GeoJSONSource | undefined;
+  src?.setData({
+    type: "FeatureCollection",
+    features: (segments ?? []).map((s) => ({ type: "Feature", properties: { level: s.level }, geometry: { type: "LineString", coordinates: s.coords.map(([lat, lng]) => [lng, lat]) } })),
+  });
+}
+
+/** Live traffic overlay tiles (served by /api/map/traffic), under labels and the route. */
+export function setTrafficTiles(map: MLMap, on: boolean) {
+  const has = !!map.getLayer("hop-traffic-tiles");
+  if (!on) {
+    if (has) map.removeLayer("hop-traffic-tiles");
+    if (map.getSource("hop-traffic-tiles")) map.removeSource("hop-traffic-tiles");
+    return;
+  }
+  if (has) return;
+  if (!map.getSource("hop-traffic-tiles")) {
+    map.addSource("hop-traffic-tiles", { type: "raster", tiles: [`${window.location.origin}/api/map/traffic/{z}/{x}/{y}`], tileSize: 256, minzoom: 6, maxzoom: 18 });
+  }
+  const firstSymbol = map.getStyle().layers?.find((l) => l.type === "symbol")?.id;
+  map.addLayer({ id: "hop-traffic-tiles", type: "raster", source: "hop-traffic-tiles", paint: { "raster-opacity": 0.85, "raster-fade-duration": 200 } }, firstSymbol ?? "hop-route-glow");
 }
 
 /** A soft white highlight band centred at progress p (p < 0 → invisible). */

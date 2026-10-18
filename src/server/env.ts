@@ -18,6 +18,14 @@ const envSchema = z.object({
   PHOTON_URL: z.string().url().default("https://photon.komoot.io"),
   NOMINATIM_URL: z.string().url().default("https://nominatim.openstreetmap.org"),
   OSRM_URL: z.string().url().default("https://router.project-osrm.org"),
+  // Traffic-aware routing and live traffic. Keys stay on the server (tiles are proxied).
+  //   ROUTING_PROVIDER=auto picks the first configured key: Google → Mapbox → TomTom → OSRM (no traffic).
+  ROUTING_PROVIDER: z.enum(["auto", "osrm", "google", "mapbox", "tomtom"]).default("auto"),
+  GOOGLE_MAPS_API_KEY: z.string().optional(),
+  MAPBOX_ACCESS_TOKEN: z.string().optional(),
+  TOMTOM_API_KEY: z.string().optional(),
+  //   TRAFFIC_TILES=auto shows the live traffic overlay when TOMTOM_API_KEY is set.
+  TRAFFIC_TILES: z.enum(["auto", "tomtom", "off"]).default("auto"),
   // Contact address sent in the User-Agent (OSM services require a way to reach you).
   HOP_GEO_CONTACT: z.string().default("ops@hop.local"),
   HOP_DATA_DIR: z.string().default("./data"),
@@ -44,5 +52,26 @@ export function env(): Env {
   return cached;
 }
 
+/** Tests only: re-read process.env on the next env() call. */
+export function resetEnvForTests() {
+  cached = null;
+}
+
 export const isDemoMode = () => env().HOP_DEMO_MODE === "true";
+
+/** Which traffic-aware router is in use, or null for OSRM / estimates (no live traffic). */
+export function trafficRouter(): "google" | "mapbox" | "tomtom" | null {
+  const e = env();
+  if (e.GEO_PROVIDER === "demo") return null;
+  const has = { google: !!e.GOOGLE_MAPS_API_KEY, mapbox: !!e.MAPBOX_ACCESS_TOKEN, tomtom: !!e.TOMTOM_API_KEY };
+  if (e.ROUTING_PROVIDER === "osrm") return null;
+  if (e.ROUTING_PROVIDER !== "auto") return has[e.ROUTING_PROVIDER] ? e.ROUTING_PROVIDER : null;
+  return has.google ? "google" : has.mapbox ? "mapbox" : has.tomtom ? "tomtom" : null;
+}
+
+/** True when the live traffic overlay can be served. */
+export const trafficTilesEnabled = () => {
+  const e = env();
+  return e.TRAFFIC_TILES !== "off" && !!e.TOMTOM_API_KEY && e.GEO_PROVIDER !== "demo";
+};
 export const isProduction = () => env().NODE_ENV === "production";

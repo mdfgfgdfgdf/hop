@@ -20,7 +20,9 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { LatLng, Polyline } from "@/lib/types";
 import { cn } from "@/components/ui/cn";
 import { CITY_LABELS, cityStyle, loadCityData, type MapTheme } from "./city";
-import { carElement, cometGradient, distM, easeOutCubic, enhanceRealTiles, installOverlays, radarElement, setCarHeading, setLine, sliceLine } from "./fx";
+import { carElement, cometGradient, distM, easeOutCubic, enhanceRealTiles, installOverlays, radarElement, setCarHeading, setLine, setTraffic, setTrafficTiles, sliceLine } from "./fx";
+import { useMapConfig } from "@/lib/map-config";
+import type { TrafficSegment } from "@/lib/traffic";
 
 // MapLibre resolves its web worker relative to the bundled chunk, which does
 // not exist under Turbopack (404 → "Worker failed to load"). Point it at the
@@ -76,6 +78,10 @@ type Props = {
   bearing?: number;
   markers?: MapMarker[];
   polyline?: Polyline | null;
+  /** Congested stretches drawn over the route (see trafficSegments in @/lib/traffic). */
+  traffic?: TrafficSegment[] | null;
+  /** Live traffic overlay for the whole map, when the server has a traffic provider. */
+  trafficTiles?: boolean;
   /** `trip`: glowing route with a travelling light. `guide`: dashed straight hint (e.g. driver → pickup). */
   routeStyle?: "trip" | "guide";
   /** Animate a new route drawing itself from start to end. */
@@ -154,6 +160,8 @@ export function MapView({
   bearing = 0,
   markers = [],
   polyline,
+  traffic,
+  trafficTiles = false,
   routeStyle = "trip",
   drawRoute = true,
   radar,
@@ -183,7 +191,9 @@ export function MapView({
   const trailFlush = useRef(0);
   const cameraRef = useRef({ pitch, bearing });
   const routeStyleRef = useRef(routeStyle);
+  const trafficRef = useRef<{ segments: TrafficSegment[] | null | undefined; tiles: boolean }>({ segments: null, tiles: false });
   const [ready, setReady] = useState(false);
+  const mapConfig = useMapConfig();
   // Real vector tiles by default (OpenFreeMap "positron": light, no key).
   // Set NEXT_PUBLIC_MAP_STYLE_URL="" to always use HOP City.
   const styleUrl = process.env.NEXT_PUBLIC_MAP_STYLE_URL ?? DEFAULT_STYLE_URL;
@@ -194,9 +204,12 @@ export function MapView({
 
   const initialCenter = useMemo(() => center ?? { lat: 32.0753, lng: 34.7818 }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Traffic tiles follow real geography, so they are never laid over the schematic HOP City.
+  const showTrafficTiles = trafficTiles && mapConfig.trafficTiles && !offline;
   useEffect(() => {
     cameraRef.current = { pitch, bearing };
     routeStyleRef.current = routeStyle;
+    trafficRef.current = { segments: traffic, tiles: showTrafficTiles };
   });
 
   // ── map lifecycle ──
@@ -244,8 +257,9 @@ export function MapView({
       }
     };
     const timer = styleUrl ? window.setTimeout(() => !map.isStyleLoaded() && toCity(), STYLE_TIMEOUT_MS) : 0;
-    map.on("error", (e: { error?: { message?: string; status?: number } }) => {
-      if (usingCity) return;
+    map.on("error", (e: { error?: { message?: string; status?: number }; sourceId?: string }) => {
+      // The traffic overlay is optional: its failures never take the basemap down.
+      if (usingCity || e.sourceId === "hop-traffic-tiles") return;
       const msg = String(e.error?.message ?? "");
       const network = msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("Load failed") || msg.includes("style") || (e.error?.status ?? 0) >= 400;
       if (!network) return;
@@ -261,6 +275,8 @@ export function MapView({
         else enhanceRealTiles(map, theme);
         installOverlays(map, routeRef.current, trailRef.current.length > 1 ? trailRef.current : null);
         applyRouteStyle(map, routeStyleRef.current);
+        setTraffic(map, trafficRef.current.segments);
+        if (!usingCity) setTrafficTiles(map, trafficRef.current.tiles);
       } catch (err) {
         console.warn("[map] overlay install failed", err);
       }
@@ -461,6 +477,22 @@ export function MapView({
       setLine(map, "hop-route", routeRef.current);
     };
   }, [polyline, ready, drawRoute]);
+
+  // ── traffic: congestion on the route + live overlay ──
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !map.getSource("hop-traffic")) return;
+    setTraffic(map, traffic);
+  }, [traffic, ready]);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    try {
+      setTrafficTiles(map, showTrafficTiles);
+    } catch {
+      /* style swapping */
+    }
+  }, [showTrafficTiles, ready]);
 
   // ── route: style + travelling light ──
   useEffect(() => {

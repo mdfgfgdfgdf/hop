@@ -53,11 +53,24 @@ export type ServiceTypeDTO = {
   sortOrder: number;
 };
 
+/** Congested stretches of a route (polyline point indices, inclusive); free flow is omitted. */
+export type TrafficLevel = "moderate" | "heavy" | "severe";
+export type TrafficSpan = { from: number; to: number; level: TrafficLevel };
+export type RouteTrafficDTO = {
+  source: "google" | "mapbox" | "tomtom";
+  durationNoTrafficS: number | null;
+  spans: TrafficSpan[];
+  at: string;
+};
+
 export type RouteDTO = {
   distanceM: number;
+  /** Includes live traffic when `traffic` is set. */
   durationS: number;
   polyline: Polyline;
   provider: "demo" | "osm";
+  /** Live traffic along the route; null/absent when no traffic-aware router is configured. */
+  traffic?: RouteTrafficDTO | null;
 };
 
 export type QuoteDTO = {
@@ -108,6 +121,8 @@ export type RideDTO = {
   pickup: { lat: number; lng: number; address: string };
   dropoff: { lat: number; lng: number; address: string };
   polyline: Polyline;
+  /** Traffic along the route when it was quoted (null without a traffic-aware router). */
+  traffic: RouteTrafficDTO | null;
   estimatedDistanceM: number;
   estimatedDurationS: number;
   actualDistanceM: number | null;

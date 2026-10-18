@@ -1,4 +1,6 @@
-import type { LatLng, Polyline } from "../db/schema";
+import type { LatLng, Polyline, RouteTraffic } from "../db/schema";
+
+export type { RouteTraffic, TrafficLevel, TrafficSpan } from "../db/schema";
 
 export type Place = {
   id: string;
@@ -13,9 +15,12 @@ export type Place = {
 
 export type RouteResult = {
   distanceM: number;
+  /** With live traffic when `traffic` is set. */
   durationS: number;
   polyline: Polyline; // [lat, lng]
+  /** "demo" = estimated offline; "osm" = a live road route (OSRM or a traffic-aware provider). */
   provider: "demo" | "osm";
+  traffic?: RouteTraffic | null;
 };
 
 export interface GeoProvider {
