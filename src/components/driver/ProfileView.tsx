@@ -5,7 +5,8 @@ import { Car, LogOut, Pencil, Star } from "lucide-react";
 import { api } from "@/lib/api";
 import { VEHICLE_CLASS_HE, VERIFICATION_STATUS_HE } from "@/lib/labels";
 import type { DriverDocumentDTO, DriverProfileDTO, ServiceTypeDTO } from "@/lib/types";
-import { Avatar, Button, Field, Input, Pill, Skeleton, useToast } from "@/components/ui";
+import { Avatar, Button, Field, Input, Skeleton, cn, useToast } from "@/components/ui";
+import { TonePill } from "./TonePill";
 import { useSession } from "@/components/app/session";
 import { useDriverRuntime } from "./DriverRuntime";
 import { DriverPage, Section } from "./DriverPage";
@@ -15,6 +16,7 @@ import { DocumentsList, missingDocuments } from "./DocumentsList";
 import { Notice } from "./Notice";
 import { errorMessage } from "./errors";
 import { Plate } from "./Plate";
+import { CHIP, TEXT, WELL } from "./tone";
 
 type ProfileData = { profile: DriverProfileDTO; documents: DriverDocumentDTO[]; requiredDocuments: string[] };
 
@@ -56,7 +58,7 @@ export function ProfileView() {
     <DriverPage title="פרופיל ומסמכים" wide>
       <div className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start">
         <div className="grid gap-4 lg:sticky lg:top-24">
-          <div className="glass glass-md p-5">
+          <div className="glass glass-strong glass-md p-5">
             <div className="flex items-center gap-4">
               <Avatar name={user?.name ?? "נהג"} size={64} />
               <div className="min-w-0">
@@ -65,7 +67,7 @@ export function ProfileView() {
                   {user?.email}
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {p && <Pill tone={tone}>{VERIFICATION_STATUS_HE[p.verificationStatus]}</Pill>}
+                  {p && <TonePill tone={tone}>{VERIFICATION_STATUS_HE[p.verificationStatus]}</TonePill>}
                   {p?.rating != null && (
                     <span className="inline-flex items-center gap-1 text-sm font-bold">
                       <Star size={14} className="fill-amber-400 text-amber-400" aria-hidden />
@@ -78,7 +80,7 @@ export function ProfileView() {
             </div>
           </div>
           {p && data && <VerificationCard profile={p} missing={missingDocuments(data.documents, data.requiredDocuments)} compact onFix={() => document.getElementById("documents")?.scrollIntoView({ behavior: "smooth" })} />}
-          <Button variant="ghost" block className="text-[#ff8a8d]" onClick={() => void logout()}>
+          <Button variant="ghost" block className={TEXT.danger} onClick={() => void logout()}>
             <LogOut size={18} aria-hidden /> התנתקות
           </Button>
         </div>
@@ -104,19 +106,19 @@ export function ProfileView() {
           >
             {p && !editingVehicle ? (
               <div className="grid gap-3" data-testid="vehicle-summary">
-                <div className="flex items-center gap-3">
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand/15 text-[#8fb0ff]">
+                <div className={cn(WELL, "flex items-center gap-3 p-3")}>
+                  <span className={cn("grid h-12 w-12 shrink-0 place-items-center rounded-2xl", CHIP.brand)}>
                     <Car size={22} aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-extrabold">{[p.vehicleMake, p.vehicleModel].filter(Boolean).join(" ") || "טרם הוזנו פרטי רכב"}</div>
-                    <div className="truncate text-xs text-fg-muted">{[p.vehicleColor, VEHICLE_CLASS_HE[p.vehicleClass], p.vehicleYear, `${p.seats} מקומות`].filter(Boolean).join(" · ")}</div>
+                    <div className="mt-0.5 text-xs leading-snug text-fg-muted">{[p.vehicleColor, VEHICLE_CLASS_HE[p.vehicleClass], p.vehicleYear, `${p.seats} מקומות`].filter(Boolean).join(" · ")}</div>
                   </div>
                   {p.vehiclePlate && <Plate plate={p.vehiclePlate} />}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {p.serviceTypeIds.map((id) => (
-                    <span key={id} className="rounded-full bg-[color-mix(in_oklab,var(--fg)_7%,transparent)] px-3 py-1 text-xs font-bold">
+                    <span key={id} className="pill pill-brand">
                       {serviceTypes?.find((s) => s.id === id)?.nameHe ?? id}
                     </span>
                   ))}

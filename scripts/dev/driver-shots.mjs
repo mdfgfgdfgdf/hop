@@ -3,6 +3,7 @@
  *   PW_CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/dev/driver-shots.mjs [only]
  * Screens at iPhone 14 (390×844) and desktop (1380×900) into OUT.
  * `only` = comma list of sections: flow,cancel,decline,expire,pages,onboarding,signup,denied
+ * CONTRAST=1 audits text contrast on every shot; REDUCED=1 emulates prefers-reduced-motion.
  */
 import { chromium, devices, request as pwRequest } from "@playwright/test";
 import fs from "node:fs";
@@ -56,7 +57,15 @@ async function createRide(paymentMethod = "cash") {
 async function newPage(kind, email, password, { geo = true } = {}) {
   const opts = kind === "desktop" ? { viewport: { width: 1380, height: 900 } } : { ...devices["iPhone 14"], viewport: { width: 390, height: 844 } };
   const storageState = email ? await stateFor(email, password) : undefined;
-  const ctx = await browser.newContext({ ...opts, storageState, locale: "he-IL", timezoneId: "Asia/Jerusalem", ...(geo ? { geolocation: GEO, permissions: ["geolocation"] } : { permissions: [] }) });
+  const ctx = await browser.newContext({ ...opts, storageState, locale: "he-IL", timezoneId: "Asia/Jerusalem", reducedMotion: process.env.REDUCED ? "reduce" : "no-preference", ...(geo ? { geolocation: GEO, permissions: ["geolocation"] } : { permissions: [] }) });
+  // The HOP intro plays once per browser session; skip it so shots show the page.
+  await ctx.addInitScript(() => {
+    try {
+      sessionStorage.setItem("hop.intro.seen", "1");
+    } catch {
+      /* ignore */
+    }
+  });
   const page = await ctx.newPage();
   page.on("console", (m) => {
     if ((m.type() === "error" || m.type() === "warning") && !NOISE.some((re) => re.test(m.text()))) consoleErrors.push(`[${kind}] ${m.type()}: ${m.text().slice(0, 240)}`);
@@ -67,10 +76,99 @@ async function newPage(kind, email, password, { geo = true } = {}) {
 async function hydrated(page) {
   await page.waitForFunction(() => Object.keys(document).some((k) => k.startsWith("__reactContainer")), null, { timeout: 60_000 });
 }
+/**
+ * CONTRAST=1: for every visible text element in the viewport, compare its
+ * computed colour with the background actually rendered behind it (the most
+ * common colour in its box on a screenshot — this sees glass, gradients and
+ * the map). Large text (≥ 24px, or ≥ 18.66px bold) needs 3:1, the rest 4.5:1.
+ */
+const contrastFailures = [];
+async function contrastAudit(page, name) {
+  const buf = await page.screenshot();
+  const fails = await page.evaluate(async (b64) => {
+    const img = new Image();
+    img.src = `data:image/png;base64,${b64}`;
+    await img.decode();
+    const c = document.createElement("canvas");
+    c.width = img.width;
+    c.height = img.height;
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0);
+    const k = img.width / window.innerWidth;
+    const probe = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+    const rgba = (css) => {
+      probe.clearRect(0, 0, 1, 1);
+      probe.fillStyle = "#000";
+      probe.fillStyle = css;
+      probe.fillRect(0, 0, 1, 1);
+      return [...probe.getImageData(0, 0, 1, 1).data];
+    };
+    const lum = ([r, g, b]) => {
+      const f = (v) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+      return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+    };
+    const ratio = (a, b) => {
+      const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
+      return (x + 0.05) / (y + 0.05);
+    };
+    const opaque = (el) => {
+      for (let e = el; e; e = e.parentElement) if (Number(getComputedStyle(e).opacity) < 0.99) return false;
+      return true;
+    };
+    const out = [];
+    for (const el of document.querySelectorAll("body *")) {
+      if (["SCRIPT", "STYLE", "svg", "path", "NOSCRIPT"].includes(el.tagName)) continue;
+      const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent.trim()).join(" ").trim();
+      if (!own) continue;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || el.closest(".sr-only") || cs.clip === "rect(0px, 0px, 0px, 0px)") continue;
+      // e.g. the body of a closed <details> still has a box but is not rendered
+      if (el.checkVisibility && !el.checkVisibility({ contentVisibilityAuto: true, visibilityProperty: true })) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < 4 || r.height < 4 || r.bottom <= 0 || r.top >= innerHeight || r.right <= 0 || r.left >= innerWidth) continue;
+      if (!opaque(el)) continue;
+      // topmost element at the box centre must be this element (or inside it) — skip covered text
+      const hit = document.elementFromPoint(Math.min(innerWidth - 1, Math.max(0, r.left + r.width / 2)), Math.min(innerHeight - 1, Math.max(0, r.top + r.height / 2)));
+      if (!hit || !(el === hit || el.contains(hit) || hit.contains(el))) continue;
+      const x0 = Math.max(0, Math.floor(r.left * k)), y0 = Math.max(0, Math.floor(r.top * k));
+      const w = Math.min(c.width - x0, Math.ceil(r.width * k)), h = Math.min(c.height - y0, Math.ceil(r.height * k));
+      if (w < 2 || h < 2) continue;
+      const data = ctx.getImageData(x0, y0, w, h).data;
+      const buckets = new Map();
+      for (let i = 0; i < data.length; i += 16) {
+        const key = (data[i] >> 4) * 256 + (data[i + 1] >> 4) * 16 + (data[i + 2] >> 4);
+        const b = buckets.get(key) ?? [0, 0, 0, 0];
+        b[0]++; b[1] += data[i]; b[2] += data[i + 1]; b[3] += data[i + 2];
+        buckets.set(key, b);
+      }
+      const top = [...buckets.values()].sort((m, n) => n[0] - m[0])[0];
+      const bg = [top[1] / top[0], top[2] / top[0], top[3] / top[0]];
+      const fgA = rgba(cs.color);
+      const a = fgA[3] / 255;
+      const fg = [0, 1, 2].map((i) => fgA[i] * a + bg[i] * (1 - a));
+      const size = parseFloat(cs.fontSize);
+      const bold = Number(cs.fontWeight) >= 700;
+      const need = size >= 24 || (bold && size >= 18.66) ? 3 : 4.5;
+      const cr = ratio(fg, bg);
+      if (cr < need) out.push({ text: own.slice(0, 40), ratio: Math.round(cr * 100) / 100, need, fg: fg.map(Math.round), bg: bg.map(Math.round), size });
+    }
+    return out;
+  }, buf.toString("base64"));
+  for (const f of fails) contrastFailures.push({ shot: name, ...f });
+}
+
 async function shot(page, name, { full = false, wait = 700 } = {}) {
   await sleep(wait);
   const kind = page.viewportSize().width > 800 ? "desktop" : "phone";
   await page.screenshot({ path: `${OUT}/${name}-${kind}.png`, fullPage: full });
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  if (overflow > 1) consoleErrors.push(`[${kind}] horizontal overflow ${overflow}px on ${name}`);
+  // The offer card is on a 20–60 s timer: audit it on the phone only so accept stays reachable.
+  if (process.env.CONTRAST && !(name.startsWith("04-offer") && kind === "desktop")) {
+    const t0 = Date.now();
+    await contrastAudit(page, `${name}-${kind}`);
+    if (Date.now() - t0 > 4000) log("contrast audit took", Date.now() - t0, "ms");
+  }
   log("shot", `${name}-${kind}`);
 }
 async function both(pages, name, opts) {
@@ -113,6 +211,14 @@ if (ONLY.includes("flow") || ONLY.includes("cancel") || ONLY.includes("decline")
     await phone.getByTestId("active-ride").waitFor();
     await desk.getByTestId("active-ride").waitFor({ timeout: 15_000 });
     await both(pages, "05-accepted", { wait: 1200 });
+    // the floating "back to your ride" pill on a content page
+    await desk.goto(`${BASE}/drive/history`, { waitUntil: "domcontentloaded" });
+    await hydrated(desk);
+    await desk.getByText("חזרה לנסיעה").waitFor({ timeout: 30_000 });
+    await shot(desk, "05b-ride-pill", { wait: 900 });
+    await desk.goto(`${BASE}/drive`, { waitUntil: "domcontentloaded" });
+    await hydrated(desk);
+    await desk.getByTestId("active-ride").waitFor({ timeout: 30_000 });
 
     const step = async (name) => {
       const before = await phone.getByTestId("active-ride").getAttribute("data-phase");
@@ -237,6 +343,14 @@ if (ONLY.includes("pages")) {
 
 // ───────────────────────── onboarding states ─────────────────────────
 if (ONLY.includes("onboarding")) {
+  for (const kind of ["phone", "desktop"]) {
+    const page = await newPage(kind, "driver@hop.local", "Driver1234!");
+    await page.goto(`${BASE}/drive/onboarding`, { waitUntil: "domcontentloaded" });
+    await hydrated(page);
+    await page.getByTestId("verification-status").waitFor({ timeout: 60_000 });
+    await shot(page, "32-onboarding-approved", { wait: 1500 });
+    await page.context().close();
+  }
   for (const [email, tag] of [["driver.pending@hop.local", "pending"], ["driver.rejected@hop.local", "rejected"]]) {
     for (const kind of ["phone", "desktop"]) {
       const page = await newPage(kind, email, "Driver1234!");
@@ -308,4 +422,9 @@ if (ONLY.includes("denied")) {
 }
 
 await browser.close();
+if (process.env.CONTRAST) {
+  fs.writeFileSync(`${OUT}/contrast.json`, JSON.stringify(contrastFailures, null, 2));
+  console.log(`\nContrast below threshold: ${contrastFailures.length}`);
+  for (const f of contrastFailures) console.log(`  [${f.shot}] ${f.ratio}:1 (needs ${f.need}) "${f.text}" fg=${f.fg} bg=${f.bg} ${f.size}px`);
+}
 console.log("\nConsole errors/warnings (filtered):", consoleErrors.length ? "\n" + [...new Set(consoleErrors)].join("\n") : "none");

@@ -15,6 +15,7 @@ import { DRIVER_CANCEL_REASONS, PHASE_ACTION_HE, payoutOf, ridePhase, type RideP
 import { Dialog } from "./Dialog";
 import { CountUp, SwapText } from "./motion";
 import { firstName } from "./copy";
+import { CHIP, FILL, TEXT, TILE } from "./tone";
 
 const ACTION_FOR: Record<RidePhase, StepAction> = { to_pickup_pending: "arriving", to_pickup: "arrived", at_pickup: "start", on_trip: "complete" };
 const STEPS = [
@@ -66,7 +67,7 @@ export function ActiveRidePanel({ ride, me }: { ride: RideDTO; me: LatLng | null
         <ol className="grid flex-1 grid-cols-3 gap-1.5" aria-label="שלבי הנסיעה">
           {STEPS.map((s, i) => (
             <li key={s.key} className="grid gap-1" aria-current={i === stepI ? "step" : undefined}>
-              <span className="relative h-1.5 overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--fg)_14%,transparent)]">
+              <span className="relative h-1.5 overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--fg)_10%,transparent)]">
                 {i <= stepI && <motion.span className="absolute inset-0 rounded-full bg-brand" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} style={{ originX: 1 }} transition={{ type: "spring", stiffness: 200, damping: 26 }} />}
               </span>
               <span className={cn("text-[11px] font-bold", i === stepI ? "text-fg" : "text-fg-muted")}>{s.label}</span>
@@ -75,7 +76,7 @@ export function ActiveRidePanel({ ride, me }: { ride: RideDTO; me: LatLng | null
         </ol>
         <Link
           href={`/drive/support?new=safety&rideId=${ride.id}`}
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[color-mix(in_oklab,var(--fg)_7%,transparent)] text-fg hover:bg-danger/15"
+          className={cn("grid h-11 w-11 shrink-0 place-items-center rounded-full transition-colors hover:bg-danger/15", CHIP.danger)}
           aria-label="דיווח על אירוע בטיחותי"
         >
           <ShieldAlert size={19} aria-hidden />
@@ -83,10 +84,10 @@ export function ActiveRidePanel({ ride, me }: { ride: RideDTO; me: LatLng | null
       </div>
 
       <motion.div key={phase} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 380, damping: 32 }} aria-live="polite">
-        <h1 className="display text-[1.6rem] leading-tight" data-testid="ride-phase-title">
+        <h1 className="display text-[1.65rem] leading-tight" data-testid="ride-phase-title">
           {phase === "to_pickup_pending" ? "יוצאים לאיסוף" : phase === "to_pickup" ? `בדרך ל${name}` : phase === "at_pickup" ? "הגעתם לנקודת האיסוף" : "בדרך ליעד"}
         </h1>
-        <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-sm text-fg-muted" data-testid="ride-phase-line">
+        <p className="mt-1 flex flex-wrap items-center gap-1.5 text-sm font-medium text-fg-muted" data-testid="ride-phase-line">
           {phase === "at_pickup" && ride.arrivedAt ? (
             <>
               <Timer size={15} aria-hidden /> ממתינים ל{name} <span className="font-bold text-fg tabular-nums ltr-nums">{now ? mmss(now - new Date(ride.arrivedAt).getTime()) : "00:00"}</span>
@@ -104,8 +105,8 @@ export function ActiveRidePanel({ ride, me }: { ride: RideDTO; me: LatLng | null
       </motion.div>
 
       {/* rider + money */}
-      <div className="flex items-center gap-3">
-        {rider && <Avatar name={rider.name} size={44} />}
+      <div className={cn(TILE, "flex items-center gap-3 rounded-[22px] p-3")}>
+        {rider && <Avatar name={rider.name} size={46} />}
         <div className="min-w-0 flex-1">
           <div className="truncate font-extrabold">{rider?.name ?? "נוסע"}</div>
           <div className="flex items-center gap-2 text-xs text-fg-muted">
@@ -119,7 +120,7 @@ export function ActiveRidePanel({ ride, me }: { ride: RideDTO; me: LatLng | null
           </div>
         </div>
         <div className="text-end">
-          <div className="display text-[1.55rem] leading-none tabular-nums">
+          <div className={cn("display text-[1.6rem] leading-none tabular-nums", TEXT.brand)}>
             <CountUp value={payout} format={(n) => formatILS(n)} duration={0.6} from={payout} />
           </div>
           <div className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-fg-muted">
@@ -130,23 +131,23 @@ export function ActiveRidePanel({ ride, me }: { ride: RideDTO; me: LatLng | null
       </div>
 
       {/* destination + navigation */}
-      <div className="rounded-3xl bg-[color-mix(in_oklab,var(--fg)_6%,transparent)] p-3.5">
+      <div className={cn(TILE, "rounded-[22px] p-3.5")}>
         <div className="flex items-start gap-3">
-          <span aria-hidden className={cn("mt-1 h-4 w-4 shrink-0 border-[3px] border-white", toPickup ? "rounded-full bg-brand" : "rounded-[5px] bg-ink")} />
+          <span aria-hidden className={cn("mt-1 h-4 w-4 shrink-0 border-[3px] border-white", toPickup ? "rounded-full bg-brand shadow-[0_0_0_3px_rgba(36,87,255,0.18),0_3px_8px_-2px_rgba(36,87,255,0.6)]" : "rounded-[5px] bg-ink shadow-[0_0_0_1px_rgba(17,19,24,0.1),0_3px_8px_-2px_rgba(17,19,24,0.5)]")} />
           <div className="min-w-0 flex-1">
             <div className="text-[11px] font-bold text-fg-muted">{toPickup ? "נקודת איסוף" : "יעד"}</div>
             <div className="truncate text-base font-extrabold leading-snug" data-testid="ride-target-address">
               {target.address}
             </div>
-            {toPickup && <div className="truncate text-xs text-fg-muted">ואז ליעד: {ride.dropoff.address}</div>}
+            {toPickup && <div className="mt-0.5 truncate text-xs font-medium text-fg-muted">ואז ליעד: {ride.dropoff.address}</div>}
           </div>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <a href={wazeUrl(target)} target="_blank" rel="noopener noreferrer" className="btn btn-glass h-11 gap-2 text-sm" aria-label={`ניווט ב-Waze אל ${target.address}`}>
-            <Navigation size={17} aria-hidden /> ניווט ב-Waze
+          <a href={wazeUrl(target)} target="_blank" rel="noopener noreferrer" className="btn btn-glass h-12 gap-2 text-sm" aria-label={`ניווט ב-Waze אל ${target.address}`}>
+            <Navigation size={17} className="text-brand" aria-hidden /> ניווט ב-Waze
           </a>
-          <a href={googleMapsUrl(target)} target="_blank" rel="noopener noreferrer" className="btn btn-glass h-11 gap-2 text-sm" aria-label={`ניווט ב-Google Maps אל ${target.address}`}>
-            <Navigation size={17} aria-hidden /> Google Maps
+          <a href={googleMapsUrl(target)} target="_blank" rel="noopener noreferrer" className="btn btn-glass h-12 gap-2 text-sm" aria-label={`ניווט ב-Google Maps אל ${target.address}`}>
+            <Navigation size={17} className="text-brand" aria-hidden /> Google Maps
           </a>
         </div>
       </div>
@@ -155,7 +156,7 @@ export function ActiveRidePanel({ ride, me }: { ride: RideDTO; me: LatLng | null
         size="lg"
         block
         variant={action === "complete" ? "success" : "primary"}
-        className="h-16 text-xl font-extrabold"
+        className={cn("h-16 text-xl font-extrabold", action === "complete" && FILL.success)}
         onClick={onPrimary}
         loading={busy === action}
         disabled={busy != null}
@@ -164,7 +165,7 @@ export function ActiveRidePanel({ ride, me }: { ride: RideDTO; me: LatLng | null
         <SwapText k={phase}>{PHASE_ACTION_HE[phase]}</SwapText>
       </Button>
       {canCancel && (
-        <button type="button" onClick={() => setCancelOpen(true)} className="mx-auto -my-1 min-h-11 px-4 text-sm font-bold text-[#ff8a8d] hover:underline" data-testid="ride-cancel">
+        <button type="button" onClick={() => setCancelOpen(true)} className={cn("mx-auto -my-1 min-h-11 rounded-full px-4 text-sm font-bold underline-offset-4 hover:underline", TEXT.danger)} data-testid="ride-cancel">
           ביטול הנסיעה
         </button>
       )}
@@ -177,20 +178,27 @@ export function ActiveRidePanel({ ride, me }: { ride: RideDTO; me: LatLng | null
         description="סיימו רק אחרי שהנוסע הגיע ליעד וירד מהרכב."
       >
         {ride.paymentMethod === "cash" ? (
-          <div className="rounded-2xl border border-warning/40 bg-warning/12 p-3 text-sm">
+          <div className="flex items-start gap-3 rounded-2xl bg-[color-mix(in_oklab,var(--warning)_12%,var(--surface))] p-3.5 text-sm ring-1 ring-warning/40">
+            <Banknote size={22} className={cn("mt-0.5 shrink-0", TEXT.warning)} aria-hidden />
+            <div>
             <div className="font-bold">תשלום במזומן</div>
             <div className="mt-0.5 text-fg-muted">
               גבו מהנוסע <span className="font-extrabold text-fg tabular-nums">{formatILS(ride.quotedTotalAgorot)}</span>
             </div>
+            </div>
           </div>
         ) : (
-          <div className="rounded-2xl bg-[color-mix(in_oklab,var(--fg)_6%,transparent)] p-3 text-sm text-fg-muted">החיוב יתבצע בכרטיס (הדגמה) — אין צורך לגבות.</div>
+          <div className={cn(TILE, "flex items-center gap-3 p-3.5 text-sm font-medium text-fg-muted")}>
+            <CreditCard size={20} className="shrink-0 text-brand" aria-hidden />
+            החיוב יתבצע בכרטיס (הדגמה) — אין צורך לגבות.
+          </div>
         )}
         <div className="mt-4 grid gap-2">
           <Button
             variant="success"
             size="lg"
             block
+            className={FILL.success}
             loading={busy === "complete"}
             data-testid="confirm-complete"
             onClick={async () => {
@@ -200,7 +208,7 @@ export function ActiveRidePanel({ ride, me }: { ride: RideDTO; me: LatLng | null
           >
             כן, סיום נסיעה
           </Button>
-          <Button variant="ghost" block onClick={() => setConfirmComplete(false)}>
+          <Button variant="glass" block onClick={() => setConfirmComplete(false)}>
             עדיין לא
           </Button>
         </div>
@@ -239,8 +247,8 @@ function CancelDialog({ open, onClose, onConfirm, loading }: { open: boolean; on
             <label
               key={r.id}
               className={cn(
-                "flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border px-3 py-1.5 text-sm font-semibold transition-colors",
-                reasonId === r.id ? "border-danger/50 bg-danger/12" : "border-line hover:bg-[color-mix(in_oklab,var(--fg)_5%,transparent)]",
+                "flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl px-3.5 py-1.5 text-sm font-semibold transition-[background-color,box-shadow]",
+                reasonId === r.id ? "bg-[color-mix(in_oklab,var(--danger)_7%,var(--surface))] ring-2 ring-danger/45" : "bg-surface/70 ring-1 ring-line hover:bg-surface",
               )}
             >
               <input type="radio" name="cancel-reason" value={r.id} checked={reasonId === r.id} onChange={() => setReasonId(r.id)} className="h-4 w-4 accent-[var(--danger)]" />
@@ -254,14 +262,14 @@ function CancelDialog({ open, onClose, onConfirm, loading }: { open: boolean; on
       )}
       {reasonId === "safety" && (
         <p className="mt-2 text-xs text-fg-muted">
-          בסכנה מיידית חייגו <a className="font-bold text-fg underline" href="tel:100">100</a> (משטרה). אחרי הביטול אפשר לדווח לצוות הבטיחות במסך התמיכה.
+          בסכנה מיידית חייגו <a className="font-bold text-fg underline underline-offset-4" href="tel:100">100</a> (משטרה). אחרי הביטול אפשר לדווח לצוות הבטיחות במסך התמיכה.
         </p>
       )}
       <div className="mt-4 grid gap-2">
-        <Button variant="danger" size="lg" block disabled={!reason || (reasonId === "other" && !details.trim())} loading={loading} onClick={() => onConfirm(text)} data-testid="confirm-cancel">
+        <Button variant="danger" size="lg" block className={FILL.danger} disabled={!reason || (reasonId === "other" && !details.trim())} loading={loading} onClick={() => onConfirm(text)} data-testid="confirm-cancel">
           ביטול הנסיעה
         </Button>
-        <Button variant="ghost" block onClick={onClose}>
+        <Button variant="glass" block onClick={onClose}>
           חזרה לנסיעה
         </Button>
       </div>

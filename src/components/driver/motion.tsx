@@ -7,39 +7,19 @@
 import { useEffect } from "react";
 import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useTransform, type Variants } from "motion/react";
 import { Power } from "lucide-react";
+import { AnimatedMark } from "@/components/brand/AnimatedLogo";
+import { NeedleLoader as BrandNeedleLoader } from "@/components/brand/NeedleLoader";
 import { cn } from "@/components/ui";
+import { useHydrated } from "./hooks";
 
-/** The HOP needle: a gauge arc with a sweeping needle (brand loader). */
-export function NeedleLoader({ size = 40, className, label = "טוען…", tone = "brand", still }: { size?: number; className?: string; label?: string | null; tone?: "brand" | "ink" | "white"; still?: boolean }) {
-  const reduce = useReducedMotion();
+/**
+ * The HOP needle loader (ring + sweeping needle) — the brand's waiting element.
+ * `label={null}` renders it decoratively (inside a labelled button, etc.).
+ */
+export function NeedleLoader({ size = 40, className, label = "טוען…", tone = "brand", speed }: { size?: number; className?: string; label?: string | null; tone?: "brand" | "ink" | "white"; speed?: number }) {
   const color = tone === "brand" ? "var(--brand)" : tone === "white" ? "#fff" : "var(--ink)";
-  const sweep = !reduce && !still;
-  // Arc from 150° to 390° (240° gauge), centre 24,24, radius 17.
-  const r = 17;
-  const a0 = (150 * Math.PI) / 180;
-  const a1 = (390 * Math.PI) / 180;
-  const p0 = [24 + r * Math.cos(a0), 24 + r * Math.sin(a0)];
-  const p1 = [24 + r * Math.cos(a1), 24 + r * Math.sin(a1)];
-  return (
-    <span className={cn("relative inline-grid shrink-0 place-items-center", className)} style={{ width: size, height: size }} role={label ? "status" : undefined} aria-label={label ?? undefined} aria-hidden={label ? undefined : true}>
-      <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden>
-        <path d={`M ${p0[0]} ${p0[1]} A ${r} ${r} 0 1 1 ${p1[0]} ${p1[1]}`} fill="none" stroke={color} strokeOpacity={0.28} strokeWidth={5} strokeLinecap="round" />
-      </svg>
-      <motion.svg
-        viewBox="0 0 48 48"
-        width={size}
-        height={size}
-        className="absolute inset-0"
-        aria-hidden
-        initial={{ rotate: sweep ? -110 : 45 }}
-        animate={sweep ? { rotate: [-110, 110, -110] } : { rotate: 45 }}
-        transition={sweep ? { duration: 2.4, repeat: Infinity, ease: "easeInOut" } : { duration: 0 }}
-      >
-        <line x1="24" y1="24" x2="24" y2="9" stroke={color} strokeWidth={4.5} strokeLinecap="round" />
-        <circle cx="24" cy="24" r="4.2" fill={color} />
-      </motion.svg>
-    </span>
-  );
+  const loader = <BrandNeedleLoader size={size} color={color} label={label ?? ""} speed={speed} className={className} />;
+  return label ? loader : <span aria-hidden className="inline-grid shrink-0">{loader}</span>;
 }
 
 /** Animated number (counts from the previous value). Screen readers get the final value. */
@@ -107,8 +87,14 @@ export function StaggerItem({ children, className, as = "li" }: { children: Reac
   );
 }
 
-/** Big availability switch with a spring knob and brand glow when on. */
-export function BigSwitch({ checked, onChange, disabled, busy, label }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; busy?: boolean; label: string }) {
+/**
+ * Big availability switch. Off: a gray glass track with a power knob.
+ * On: the knob slides over and becomes the HOP mark with its needle sweeping —
+ * the "searching for rides" brand moment. `onBrand` adapts the track for a
+ * blue-glass panel.
+ */
+export function BigSwitch({ checked, onChange, disabled, busy, label, onBrand }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; busy?: boolean; label: string; onBrand?: boolean }) {
+  const hydrated = useHydrated();
   return (
     <button
       type="button"
@@ -120,14 +106,33 @@ export function BigSwitch({ checked, onChange, disabled, busy, label }: { checke
       onClick={() => onChange(!checked)}
       data-testid="availability-switch"
       className={cn(
-        "relative flex h-[60px] w-[96px] shrink-0 items-center rounded-full p-1.5 transition-[background-color,box-shadow] duration-300 disabled:opacity-70",
-        checked
-          ? "justify-end bg-brand shadow-[0_0_0_1px_rgba(255,255,255,0.18)_inset,0_12px_40px_-8px_rgba(36,87,255,0.9)]"
-          : "justify-start bg-[color-mix(in_oklab,var(--fg)_14%,transparent)] shadow-[0_0_0_1px_rgba(255,255,255,0.08)_inset]",
+        "relative flex h-[60px] w-[100px] shrink-0 items-center rounded-full p-1.5 transition-[background-color,box-shadow] duration-300 disabled:cursor-wait",
+        checked ? "justify-end" : "justify-start",
+        checked && onBrand
+          ? "bg-white/20 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.45),inset_0_3px_8px_rgba(10,30,120,0.35)]"
+          : checked
+            ? "bg-brand shadow-[inset_0_0_0_1px_rgba(255,255,255,0.3),inset_0_3px_8px_rgba(10,30,120,0.35),0_10px_24px_-12px_rgba(36,87,255,0.8)]"
+            : "bg-[color-mix(in_oklab,var(--fg)_11%,transparent)] shadow-[inset_0_0_0_1px_rgba(17,19,24,0.06),inset_0_3px_7px_rgba(17,19,24,0.12)]",
       )}
     >
-      <motion.span layout transition={{ type: "spring", stiffness: 560, damping: 30 }} className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_6px_16px_-4px_rgba(0,0,0,0.5)]">
-        {busy || checked ? <NeedleLoader size={30} tone={checked ? "brand" : "ink"} label={null} /> : <Power size={22} strokeWidth={2.6} className="text-ink-500" aria-hidden />}
+      <motion.span
+        layout
+        transition={{ type: "spring", stiffness: 560, damping: 32 }}
+        className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_8px_18px_-6px_rgba(17,19,24,0.45),inset_0_-2px_4px_rgba(17,19,24,0.08),inset_0_1px_0_#fff]"
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={busy ? "busy" : checked ? "on" : "off"}
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.6, opacity: 0 }}
+            transition={{ duration: 0.16 }}
+            className="grid place-items-center"
+            aria-hidden
+          >
+            {busy ? <NeedleLoader size={28} label={null} speed={1.1} /> : checked ? <AnimatedMark size={34} mode={hydrated ? "loading" : "idle"} hopOn="mount" title="" /> : <Power size={22} strokeWidth={2.6} className="text-ink-500" />}
+          </motion.span>
+        </AnimatePresence>
       </motion.span>
     </button>
   );

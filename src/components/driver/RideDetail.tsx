@@ -7,7 +7,8 @@ import { api } from "@/lib/api";
 import { formatDateTime, formatDistance, formatDuration, formatTime } from "@/lib/format";
 import { CANCELLED_BY_HE, RIDE_STATUS_HE } from "@/lib/labels";
 import type { RideDTO, RideEventDTO } from "@/lib/types";
-import { Avatar, Button, Pill, Skeleton, StarRating, useToast } from "@/components/ui";
+import { Avatar, Button, Skeleton, StarRating, cn, useToast } from "@/components/ui";
+import { TonePill } from "./TonePill";
 import { useSession } from "@/components/app/session";
 import { DriverPage, Section } from "./DriverPage";
 import { DriverMap } from "./DriverMap";
@@ -17,6 +18,7 @@ import { NeedleLoader, StaggerItem, StaggerList } from "./motion";
 import { Notice } from "./Notice";
 import { errorCode, errorMessage } from "./errors";
 import { RIDE_EVENT_HE } from "./labels";
+import { WELL } from "./tone";
 
 const HIDDEN_EVENTS = new Set(["searching", "offer_declined", "offer_expired"]);
 
@@ -93,24 +95,24 @@ export function RideDetail({ id }: { id: string }) {
       ) : (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start">
           <div className="grid gap-4">
-            <div className="relative h-60 overflow-hidden rounded-[28px] border border-line sm:h-72">
+            <div className="relative h-60 overflow-hidden rounded-[28px] shadow-[0_1px_2px_rgba(17,19,24,0.04),0_14px_34px_-24px_rgba(17,19,24,0.4)] ring-1 ring-line sm:h-72">
               <DriverMap pickup={ride.pickup} dropoff={ride.dropoff} polyline={ride.polyline} frame={frame} viewKey={ride.id} interactive={false} showRecenter={false} padding={{ top: 40, bottom: 40, left: 40, right: 40 }} />
             </div>
             <Section>
               <div className="mb-4 flex flex-wrap items-center gap-2">
-                <Pill tone={ride.status === "completed" ? "success" : ride.status === "cancelled" ? "muted" : "brand"} className={ride.status !== "completed" && ride.status !== "cancelled" ? "bg-brand/20! text-[#b8caff]!" : undefined}>{RIDE_STATUS_HE[ride.status]}</Pill>
-                <Pill tone="ink">{ride.serviceType.nameHe}</Pill>
-                {ride.isDemo && <Pill tone="warning">נסיעת הדגמה</Pill>}
+                <TonePill tone={ride.status === "completed" ? "success" : ride.status === "cancelled" ? "muted" : "brand"}>{RIDE_STATUS_HE[ride.status]}</TonePill>
+                <TonePill tone="ink">{ride.serviceType.nameHe}</TonePill>
+                {ride.isDemo && <TonePill tone="warning">נסיעת הדגמה</TonePill>}
               </div>
               <AddressStack pickup={ride.pickup.address} dropoff={ride.dropoff.address} pickupHint={ride.startedAt ? `נאסף ב-${formatTime(ride.startedAt)}` : undefined} dropoffHint={ride.completedAt ? `הגעה ב-${formatTime(ride.completedAt)}` : undefined} />
               <dl className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                <div className="rounded-2xl bg-[color-mix(in_oklab,var(--fg)_5%,transparent)] p-3">
-                  <dt className="text-xs text-fg-muted">מרחק</dt>
-                  <dd className="font-extrabold tabular-nums">{formatDistance(ride.actualDistanceM ?? ride.estimatedDistanceM)}</dd>
+                <div className={cn(WELL, "p-3")}>
+                  <dt className="text-xs font-semibold text-fg-muted">מרחק</dt>
+                  <dd className="display mt-0.5 text-base tabular-nums">{formatDistance(ride.actualDistanceM ?? ride.estimatedDistanceM)}</dd>
                 </div>
-                <div className="rounded-2xl bg-[color-mix(in_oklab,var(--fg)_5%,transparent)] p-3">
-                  <dt className="text-xs text-fg-muted">משך</dt>
-                  <dd className="font-extrabold tabular-nums">{formatDuration(ride.actualDurationS ?? ride.estimatedDurationS)}</dd>
+                <div className={cn(WELL, "p-3")}>
+                  <dt className="text-xs font-semibold text-fg-muted">משך</dt>
+                  <dd className="display mt-0.5 text-base tabular-nums">{formatDuration(ride.actualDurationS ?? ride.estimatedDurationS)}</dd>
                 </div>
               </dl>
               {ride.status === "cancelled" && ride.cancelReason && <p className="mt-3 text-xs text-fg-muted">סיבת ביטול: {ride.cancelReason === "no_drivers_available" ? "לא נמצא נהג זמין" : ride.cancelReason}</p>}
@@ -133,7 +135,7 @@ export function RideDetail({ id }: { id: string }) {
                   {ride.driverRating != null && <StarRating value={ride.driverRating} readOnly size={20} />}
                 </div>
                 {ride.status === "completed" && ride.driverRating == null && (
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[color-mix(in_oklab,var(--fg)_5%,transparent)] p-3">
+                  <div className={cn(WELL, "mt-3 flex flex-wrap items-center justify-between gap-3 p-3")}>
                     <StarRating value={stars} onChange={setStars} size={30} />
                     <Button size="sm" variant="glass" disabled={!stars} loading={rating} onClick={() => void rate()}>
                       שליחת דירוג
@@ -153,7 +155,7 @@ export function RideDetail({ id }: { id: string }) {
                   <span aria-hidden className="absolute start-[13px] top-2 bottom-2 w-px bg-line" />
                   {timeline.map(({ e, text }) => (
                     <StaggerItem key={e.id} className="relative flex items-start gap-3">
-                      <span className={"relative z-10 mt-0.5 grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full " + (e.type === "completed" ? "bg-success text-white" : e.type.includes("cancel") ? "bg-danger/80 text-white" : "bg-surface text-[#8fb0ff] ring-1 ring-line")}>
+                      <span className={cn("relative z-10 mt-0.5 grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full", e.type === "completed" ? "bg-success text-white" : e.type.includes("cancel") ? "bg-danger text-white" : "bg-brand-50 text-brand ring-1 ring-brand/20")}>
                         <CircleDot size={13} aria-hidden />
                       </span>
                       <div className="min-w-0 flex-1">

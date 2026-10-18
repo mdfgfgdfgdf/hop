@@ -191,3 +191,18 @@ export function useElementHeight<T extends HTMLElement>() {
   }, [el]);
   return [setEl, height] as const;
 }
+
+const noopSubscribe = () => () => {};
+/**
+ * `false` while server-rendering and hydrating, `true` afterwards. Used to keep
+ * the animated HOP marks in their static "idle" pose until hydration: the
+ * shared AnimatedMark reads prefers-reduced-motion only on the client, so any
+ * other starting pose would differ from the server HTML under reduced motion.
+ */
+export function useHydrated() {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+}

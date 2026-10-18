@@ -7,9 +7,11 @@ import { api } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import { DOCUMENT_STATUS_HE, DOCUMENT_TYPE_HE } from "@/lib/labels";
 import type { DocumentType, DriverDocumentDTO, VerificationStatus } from "@/lib/types";
-import { Pill, cn, useToast } from "@/components/ui";
+import { cn, useToast } from "@/components/ui";
+import { TonePill } from "./TonePill";
 import { errorMessage } from "./errors";
 import { NeedleLoader, StaggerItem, StaggerList } from "./motion";
+import { CHIP, TEXT } from "./tone";
 
 const HINTS: Record<DocumentType, string> = {
   id_card: "צילום ברור של תעודת הזהות כולל הספח",
@@ -62,8 +64,8 @@ export function DocumentsList({
   return (
     <div className="grid gap-3">
       <div className="flex items-center gap-3">
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--fg)_10%,transparent)]" aria-hidden>
-          <motion.div className="h-full rounded-full bg-brand" initial={{ width: 0 }} animate={{ width: `${pct * 100}%` }} transition={{ type: "spring", stiffness: 120, damping: 22 }} />
+        <div className="h-2 flex-1 overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--fg)_7%,transparent)]" aria-hidden>
+          <motion.div className="h-full rounded-full bg-[linear-gradient(90deg,#4a76ff,var(--brand))]" initial={{ width: 0 }} animate={{ width: `${pct * 100}%` }} transition={{ type: "spring", stiffness: 120, damping: 22 }} />
         </div>
         <span className="text-xs font-bold text-fg-muted tabular-nums" data-testid="docs-progress">
           {done}/{requiredDocuments.length} הועלו
@@ -112,23 +114,26 @@ function DocumentRow({ type, doc, required, approvedAccount, onUploaded }: { typ
   }
 
   const status = doc?.status ?? null;
+  // A document the review is actually waiting for gets the (soft) brand action;
+  // the page keeps a single glossy primary button ("continue").
+  const needsUpload = status === "rejected" || (!doc && required && !approvedAccount);
   const tone = status === "approved" ? "success" : status === "rejected" ? "danger" : status === "submitted" ? "warning" : "muted";
   const StatusIcon = status === "approved" ? CheckCircle2 : status === "rejected" ? XCircle : status === "submitted" ? Clock3 : IdCard;
-  const iconTone = status === "approved" ? "text-success" : status === "rejected" ? "text-[#ff8a8d]" : status === "submitted" ? "text-warning" : "text-fg-muted";
+  const iconTone = status === "approved" ? CHIP.success : status === "rejected" ? CHIP.danger : status === "submitted" ? CHIP.warning : "bg-surface text-fg-muted ring-1 ring-line";
 
   return (
-    <div className={cn("rounded-2xl border p-3.5", status === "rejected" ? "border-danger/40 bg-danger/8" : "border-line bg-[color-mix(in_oklab,var(--fg)_4%,transparent)]")} data-testid={`doc-${type}`}>
+    <div className={cn("rounded-2xl p-3.5", status === "rejected" ? "bg-[color-mix(in_oklab,var(--danger)_6%,var(--surface))] ring-1 ring-danger/35" : "bg-bg ring-1 ring-line")} data-testid={`doc-${type}`}>
       <div className="flex items-start gap-3">
-        <span className={cn("mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[color-mix(in_oklab,var(--fg)_7%,transparent)]", iconTone)}>
+        <span className={cn("mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl", iconTone)}>
           <StatusIcon size={20} aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="font-bold">{DOCUMENT_TYPE_HE[type]}</span>
             {!required && <span className="text-[11px] font-semibold text-fg-muted">(רשות)</span>}
-            <Pill tone={tone} className="h-6 text-[11px]">
+            <TonePill tone={tone} className="h-6 text-[11px]">
               {status ? DOCUMENT_STATUS_HE[status] : approvedAccount ? "אין קובץ במערכת" : "חסר"}
-            </Pill>
+            </TonePill>
           </div>
           <div className="mt-0.5 text-xs text-fg-muted">{HINTS[type]}</div>
           {doc && (
@@ -144,7 +149,7 @@ function DocumentRow({ type, doc, required, approvedAccount, onUploaded }: { typ
             </div>
           )}
           {status === "rejected" && doc?.reviewNotes && (
-            <div className="mt-2 rounded-xl bg-danger/12 px-3 py-2 text-xs font-semibold text-[#ffb3b5]" role="note">
+            <div className={cn("mt-2 rounded-xl bg-danger/8 px-3 py-2 text-xs font-semibold", TEXT.danger)} role="note">
               סיבת הדחייה: {doc.reviewNotes}
             </div>
           )}
@@ -155,16 +160,16 @@ function DocumentRow({ type, doc, required, approvedAccount, onUploaded }: { typ
         {EXPIRING.has(type) && (
           <label className="grid min-w-[9.5rem] flex-1 gap-1 text-[11px] font-bold text-fg-muted" htmlFor={`${id}-exp`}>
             תאריך תפוגה (לא חובה)
-            <input id={`${id}-exp`} type="date" dir="ltr" value={expiry} onChange={(e) => setExpiry(e.target.value)} className="input h-12 text-start text-sm [color-scheme:dark]" />
+            <input id={`${id}-exp`} type="date" dir="ltr" value={expiry} onChange={(e) => setExpiry(e.target.value)} className="input h-12 text-start text-sm" />
           </label>
         )}
         <div className="flex flex-1 gap-2">
-          <label className={cn("btn h-12 flex-1 cursor-pointer gap-2 px-4 text-sm", doc && status !== "rejected" ? "btn-glass" : "border border-brand/45 bg-brand/20 text-[#dbe4ff] hover:bg-brand/30", uploading && "pointer-events-none opacity-70")}>
-            {uploading ? <NeedleLoader size={22} tone="white" label="מעלה…" /> : <Camera size={18} aria-hidden />}
+          <label className={cn("btn h-12 flex-1 cursor-pointer gap-2 px-4 text-sm focus-within:outline-3 focus-within:outline-brand/50", needsUpload ? "bg-brand-100 text-brand-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] ring-1 ring-brand/30 hover:bg-brand-200/70" : "btn-glass", uploading && "pointer-events-none opacity-70")}>
+            {uploading ? <NeedleLoader size={22} label="מעלה…" /> : <Camera size={18} aria-hidden />}
             {uploading ? "מעלה…" : doc ? "צילום חדש" : "צילום"}
             <input type="file" accept="image/*,application/pdf" capture="environment" className="sr-only" disabled={uploading} onChange={(e) => void upload(e.target.files?.[0]).finally(() => (e.target.value = ""))} data-testid={`upload-${type}`} />
           </label>
-          <label className={cn("btn btn-glass h-12 cursor-pointer gap-2 px-4 text-sm", uploading && "pointer-events-none opacity-70")}>
+          <label className={cn("btn btn-glass h-12 cursor-pointer gap-2 px-4 text-sm focus-within:outline-3 focus-within:outline-brand/50", uploading && "pointer-events-none opacity-70")}>
             <FileUp size={18} aria-hidden />
             מהקבצים
             <input type="file" accept="image/*,application/pdf" className="sr-only" disabled={uploading} onChange={(e) => void upload(e.target.files?.[0]).finally(() => (e.target.value = ""))} />
@@ -172,7 +177,7 @@ function DocumentRow({ type, doc, required, approvedAccount, onUploaded }: { typ
         </div>
       </div>
       {error && (
-        <p className="mt-2 text-xs font-semibold text-[#ff8a8d]" role="alert">
+        <p className={cn("mt-2 text-xs font-semibold", TEXT.danger)} role="alert">
           {error}
         </p>
       )}
