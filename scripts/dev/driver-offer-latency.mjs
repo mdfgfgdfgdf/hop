@@ -1,0 +1,27 @@
+// Measures offer → card latency in the driver UI.
+import { chromium, devices, request as pwRequest } from "@playwright/test";
+const BASE = process.env.BASE ?? "http://localhost:3002";
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });
+const login = async (email, password) => { const c = await pwRequest.newContext({ baseURL: BASE }); await c.post("/api/auth/login", { data: { email, password } }); return c; };
+const admin = await login("admin@hop.local", "Admin1234!");
+const rider = await login("rider@hop.local", "Rider1234!");
+for (const r of (await (await admin.get("/api/admin/rides?status=active")).json()).rides) await admin.post(`/api/admin/rides/${r.id}/cancel`, { data: { reason: "cleanup" } });
+const ctx = await browser.newContext({ ...devices["iPhone 14"], viewport: { width: 390, height: 844 }, geolocation: { latitude: 32.0752, longitude: 34.7751 }, permissions: ["geolocation"] });
+const page = await ctx.newPage();
+await ctx.request.post(`${BASE}/api/auth/login`, { data: { email: "driver@hop.local", password: "Driver1234!" } });
+await ctx.request.post(`${BASE}/api/driver/availability`, { data: { online: true, location: { lat: 32.0752, lng: 34.7751 } } });
+await page.goto(`${BASE}/drive`);
+await page.getByText("ממתינים להזמנות").first().waitFor({ timeout: 60000 });
+await page.waitForTimeout(3000);
+const q = await (await rider.post("/api/quotes", { data: { pickup: { lat: 32.0752, lng: 34.7751, address: "דיזנגוף סנטר" }, dropoff: { lat: 32.0807, lng: 34.7805, address: "כיכר רבין" } } })).json();
+const t0 = Date.now();
+const res = await (await rider.post("/api/rides", { data: { quoteId: q.quotes.find((x) => x.serviceType.id === "taxi").id, paymentMethod: "cash" } })).json();
+const t1 = Date.now();
+await page.getByTestId("offer-card").waitFor({ timeout: 20000 });
+const t2 = Date.now();
+console.log("create took", t1 - t0, "ms; card visible after", t2 - t0, "ms; expires in", new Date(res.ride.offerExpiresAt).getTime() - t2, "ms");
+console.log(await page.getByRole("timer").getAttribute("aria-label"));
+await page.getByTestId("offer-decline").click();
+await page.waitForTimeout(1000);
+for (const r of (await (await admin.get("/api/admin/rides?status=active")).json()).rides) await admin.post(`/api/admin/rides/${r.id}/cancel`, { data: { reason: "cleanup" } });
+await browser.close();
