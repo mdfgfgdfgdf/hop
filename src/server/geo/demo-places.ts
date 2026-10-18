@@ -5,7 +5,7 @@
  */
 import type { Place } from "./types";
 
-type Raw = [name: string, address: string, city: string, lat: number, lng: number, kind?: Place["kind"]];
+type Raw = [name: string, address: string, city: string, lat: number, lng: number, kind?: Place["kind"], aliases?: string];
 
 const RAW: Raw[] = [
   ["דיזנגוף סנטר", "דיזנגוף 50", "תל אביב-יפו", 32.0752, 34.7751, "poi"],
@@ -33,7 +33,7 @@ const RAW: Raw[] = [
   ["אבן גבירול 100", "אבן גבירול 100", "תל אביב-יפו", 32.0861, 34.7818, "address"],
   ["בן יהודה 50", "בן יהודה 50", "תל אביב-יפו", 32.0781, 34.7705, "address"],
   ["אלנבי 60", "אלנבי 60", "תל אביב-יפו", 32.0698, 34.7718, "address"],
-  ["נמל התעופה בן גוריון", "טרמינל 3", "לוד", 32.0004, 34.8706, "transit"],
+  ["נמל התעופה בן גוריון", "טרמינל 3", "לוד", 32.0004, 34.8706, "transit", 'נתב"ג נתבג שדה התעופה airport ben gurion'],
   ["הבורסה רמת גן", "ז'בוטינסקי 7", "רמת גן", 32.0834, 34.8030, "poi"],
   ["קניון איילון", "אבא הלל 301", "רמת גן", 32.0994, 34.8244, "poi"],
   ["ספארי רמת גן", "הצבי 1", "רמת גן", 32.0545, 34.8240, "poi"],
@@ -63,7 +63,7 @@ const RAW: Raw[] = [
   ["באר שבע – תחנה מרכזית", "דרך אילת", "באר שבע", 31.2435, 34.7975, "transit"],
 ];
 
-export const DEMO_PLACES: Place[] = RAW.map(([name, address, city, lat, lng, kind], i) => ({
+export const DEMO_PLACES: (Place & { aliases?: string })[] = RAW.map(([name, address, city, lat, lng, kind, aliases], i) => ({
   id: `demo-${i}`,
   name,
   address: `${address}, ${city}`,
@@ -72,4 +72,5 @@ export const DEMO_PLACES: Place[] = RAW.map(([name, address, city, lat, lng, kin
   lng,
   kind: kind ?? "poi",
   provider: "demo" as const,
+  aliases,
 }));

@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3100;
-const baseURL = `http://127.0.0.1:${PORT}`;
+// Use localhost: the Next dev server only serves its dev client to allowed origins.
+const baseURL = `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",

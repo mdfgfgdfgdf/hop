@@ -162,7 +162,7 @@ describe("support/service updateTicket", () => {
     await expect(updateTicket(admin, "missing", { status: "closed" })).rejects.toMatchObject({ status: 404 });
   });
 
-  it.skip("BUG: reopening a resolved ticket keeps the stale resolvedAt", async () => {
+  it("reopening a resolved ticket keeps the stale resolvedAt", async () => {
     const t = await ticket(rider);
     await updateTicket(support, t.id, { status: "resolved" });
     expect((await updateTicket(support, t.id, { status: "open" })).resolvedAt).toBeNull();

@@ -46,7 +46,7 @@ export function LoginForm() {
           {(id) => <Input id={id} type="password" autoComplete="current-password" dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} required />}
         </Field>
         {error && (
-          <div role="alert" className="rounded-xl bg-danger/10 px-3 py-2 text-sm font-semibold text-danger">
+          <div role="alert" data-testid="login-error" className="rounded-xl bg-danger/10 px-3 py-2 text-sm font-semibold text-danger">
             {error}
           </div>
         )}

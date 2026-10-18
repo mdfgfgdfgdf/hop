@@ -22,12 +22,12 @@ describe("geo/demo-provider search", () => {
     expect(r[0]?.name).toBe("נמל התעופה בן גוריון");
   });
 
-  it.skip("BUG: the airport's common name נתב\"ג finds nothing (demo-places.ts has no alias)", async () => {
+  it("the airport's common name נתב\"ג finds nothing (demo-places.ts has no alias)", async () => {
     const r = await provider.search("נתב");
     expect(names(r)).toContain("נמל התעופה בן גוריון");
   });
 
-  it.skip("BUG: a query matching every term of a name ranks below a one-term prefix match", async () => {
+  it("a query matching every term of a name ranks below a one-term prefix match", async () => {
     // "בן יהודה 50" scores 3 (short term + prefix bonus) and ties the airport,
     // which matches both terms; ties fall back to array order.
     const r = await provider.search("בן גוריון");

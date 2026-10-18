@@ -57,16 +57,25 @@ export async function signup(input: SignupInput, meta: { ip?: string | null; use
   return { user, session };
 }
 
+let dummyHash: Promise<string> | null = null;
+/** Keeps login timing similar for unknown emails (no account-enumeration via response time). */
+function getDummyHash() {
+  return (dummyHash ??= hashPassword("hop-dummy-password-for-timing"));
+}
+
 export async function login(input: z.infer<typeof loginSchema>, meta: { ip?: string | null; userAgent?: string | null }) {
   const db = await getDb();
   const email = input.email.toLowerCase();
   const [user] = await db.select().from(users).where(sql`lower(${users.email}) = ${email}`).limit(1);
-  const okPassword = user ? await verifyPassword(user.passwordHash, input.password) : false;
+  const okPassword = user ? await verifyPassword(user.passwordHash, input.password) : await verifyPassword(await getDummyHash(), input.password).then(() => false);
   if (!user || !okPassword) {
     await audit({ action: "auth.login_failed", data: { email }, ip: meta.ip });
     throw unauthorized("אימייל או סיסמה שגויים");
   }
-  if (user.status === "suspended") throw unauthorized("החשבון הושעה. פנו לתמיכה.");
+  if (user.status === "suspended") {
+    await audit({ actorId: user.id, actorRole: user.role, action: "auth.login_suspended", targetType: "user", targetId: user.id, data: { email }, ip: meta.ip });
+    throw unauthorized("החשבון הושעה. פנו לתמיכה.");
+  }
   const session = await createSession(user.id, meta);
   await audit({ actorId: user.id, actorRole: user.role, action: "auth.login", targetType: "user", targetId: user.id, ip: meta.ip });
   return { user: user as User, session };

@@ -207,7 +207,7 @@ describe("driver/service earnings", () => {
     expect(await earnings(idle.id, { from: new Date(0), to: new Date() })).toMatchObject({ ridesCompleted: 0, grossAgorot: 0, cancellationFeesAgorot: 0, byDay: [] });
   });
 
-  it.skip("BUG: earnings.byDay buckets by UTC date instead of the Israel calendar day", async () => {
+  it("earnings.byDay buckets by UTC date instead of the Israel calendar day", async () => {
     const { user: driver } = await makeDriver(db, { lat: 32.0757, lng: 34.7756 });
     const rider = await makeUser(db, "rider");
     const { ride } = await bookRide(rider, TLV.dizengoff, TLV.rabin);

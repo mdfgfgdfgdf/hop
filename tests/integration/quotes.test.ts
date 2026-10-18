@@ -138,7 +138,7 @@ describe("dispatch/service createQuotes", () => {
     await cancelRide({ actor: other, rideId: ride.id });
   });
 
-  it.skip("BUG: availableDrivers/etaToPickupS count drivers far beyond dispatch.searchRadiusM", async () => {
+  it("availableDrivers/etaToPickupS count drivers far beyond dispatch.searchRadiusM", async () => {
     const rider = await makeUser(db, "rider");
     // Herzliya driver ~20 km from Holon: runMatching would never offer this ride to them.
     await makeDriver(db, { lat: 32.1636, lng: 34.7966 });
@@ -197,7 +197,7 @@ describe("dispatch/service createQuotes", () => {
     expect(byId(q, "taxi")!.fare.discountAgorot).toBe(500);
   });
 
-  it.skip("BUG: promo usage is never counted, so usageLimit is never enforced", async () => {
+  it("promo usage is never counted, so usageLimit is never enforced", async () => {
     const rider = await makeUser(db, "rider");
     const q = await createQuotes({ rider, pickup: TLV.dizengoff, dropoff: TLV.rabin, promoCode: "ONCE" });
     const ride = await createRide({ rider, quoteId: q.quotes[0].id, paymentMethod: "cash" });

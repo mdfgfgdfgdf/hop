@@ -36,6 +36,12 @@ export function estimateRoute(from: LatLng, to: LatLng): RouteResult {
   return { distanceM, durationS, polyline, provider: "demo" };
 }
 
+function publicPlace(p: Place & { aliases?: string }): Place {
+  const { aliases: _aliases, ...rest } = p;
+  void _aliases;
+  return rest;
+}
+
 export class DemoGeoProvider implements GeoProvider {
   readonly name = "demo" as const;
 
@@ -44,19 +50,25 @@ export class DemoGeoProvider implements GeoProvider {
     if (!q) return [];
     const terms = q.split(" ");
     const scored = DEMO_PLACES.map((p) => {
-      const hay = normalize(`${p.name} ${p.address} ${p.city ?? ""}`);
+      const name = normalize(p.name);
+      const hay = normalize(`${p.name} ${p.address} ${p.city ?? ""} ${p.aliases ?? ""}`);
       let score = 0;
+      let matched = 0;
       for (const t of terms) {
-        if (hay.includes(t)) score += t.length >= 3 ? 2 : 1;
-        if (normalize(p.name).startsWith(t)) score += 2;
+        if (hay.includes(t)) {
+          matched += 1;
+          score += t.length >= 3 ? 2 : 1;
+        }
+        if (name.startsWith(t)) score += 2;
       }
+      if (matched === terms.length) score += 4; // every term matched beats a partial prefix hit
       const dist = near ? haversineM(near, p) : 0;
       return { p, score, dist };
     })
       .filter((s) => s.score > 0)
       .sort((a, b) => b.score - a.score || a.dist - b.dist)
       .slice(0, limit)
-      .map((s) => s.p);
+      .map((s) => publicPlace(s.p));
     return scored;
   }
 
@@ -71,7 +83,7 @@ export class DemoGeoProvider implements GeoProvider {
       }
     }
     if (!best) return null;
-    if (bestD < 120) return best;
+    if (bestD < 120) return publicPlace(best);
     return {
       id: `demo-pin-${point.lat.toFixed(5)}-${point.lng.toFixed(5)}`,
       name: `נקודה ליד ${best.name}`,

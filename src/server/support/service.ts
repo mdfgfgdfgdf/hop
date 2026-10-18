@@ -83,9 +83,10 @@ export async function addMessage(user: User, ticketId: string, body: string, int
   if (!t) throw notFound();
   if (!staff && t.openedBy !== user.id) throw forbidden();
   await db.insert(ticketMessages).values({ ticketId, authorId: user.id, body, internal: staff && internal });
+  const nextStatus = staff ? (t.status === "open" ? "in_progress" : t.status) : t.status === "resolved" ? "open" : t.status;
   await db
     .update(supportTickets)
-    .set({ status: staff ? (t.status === "open" ? "in_progress" : t.status) : t.status === "resolved" ? "open" : t.status, updatedAt: new Date() })
+    .set({ status: nextStatus, resolvedAt: nextStatus === "resolved" || nextStatus === "closed" ? t.resolvedAt : null, updatedAt: new Date() })
     .where(eq(supportTickets.id, ticketId));
   if (!staff) publish(channels.admin, "notification", { kind: "ticket.message", ticketId });
   else publish(channels.user(t.openedBy), "notification", { kind: "ticket.reply", ticketId });
@@ -96,7 +97,11 @@ export async function updateTicket(staff: User, ticketId: string, patch: { statu
   const db = await getDb();
   const [t] = await db
     .update(supportTickets)
-    .set({ ...patch, resolvedAt: patch.status === "resolved" || patch.status === "closed" ? new Date() : undefined, updatedAt: new Date() })
+    .set({
+      ...patch,
+      resolvedAt: patch.status === undefined ? undefined : patch.status === "resolved" || patch.status === "closed" ? new Date() : null,
+      updatedAt: new Date(),
+    })
     .where(eq(supportTickets.id, ticketId))
     .returning();
   if (!t) throw notFound();

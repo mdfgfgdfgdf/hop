@@ -131,7 +131,7 @@ describe("auth/service login", () => {
     expect(await db.select().from(sessions).where(eq(sessions.userId, u.id))).toHaveLength(0);
   });
 
-  it.skip("BUG: a suspended user's login attempt (correct password) is not audited", async () => {
+  it("a suspended user's login attempt (correct password) is not audited", async () => {
     const u = await makeUser(db, "rider", { status: "suspended" });
     await login({ email: u.email, password: TEST_PASSWORD }, meta).catch(() => {});
     const rows = await db.select().from(auditLogs).where(sql`${auditLogs.data}->>'email' = ${u.email.toLowerCase()} or ${auditLogs.targetId} = ${u.id}`);

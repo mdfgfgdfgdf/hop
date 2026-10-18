@@ -22,6 +22,7 @@ import { loadRideContext, serializeRide } from "../dispatch/service-helpers";
 import { serializeDocument, serializeDriverProfile } from "../dispatch/serialize";
 import { publicUser } from "../auth/guards";
 import { revokeAllSessions } from "../auth/session";
+import { startOfDayIL } from "../time";
 
 type Staff = Pick<User, "id" | "role">;
 
@@ -29,8 +30,7 @@ type Staff = Pick<User, "id" | "role">;
 
 export async function overview() {
   const db = await getDb();
-  const dayStart = new Date();
-  dayStart.setHours(0, 0, 0, 0);
+  const dayStart = startOfDayIL();
   const [[active], [today], [onlineDrivers], [pendingDrivers], [openTickets], [flagged], [usersCount]] = await Promise.all([
     db.select({ n: count() }).from(rides).where(inArray(rides.status, [...ACTIVE_STATUSES])),
     db
@@ -118,7 +118,7 @@ export async function verifyDriver(staff: Staff, id: string, input: { decision: 
     const { REQUIRED_DOCUMENTS } = await import("../driver/service");
     const approvedTypes = new Set(docs.map((d) => d.type));
     const missing = REQUIRED_DOCUMENTS.filter((t) => !approvedTypes.has(t));
-    if (missing.length && !input.notes?.includes("override")) {
+    if (missing.length) {
       throw conflict("documents_missing", "לא ניתן לאשר נהג לפני אישור כל המסמכים הנדרשים", { missing });
     }
   }
@@ -314,6 +314,10 @@ export async function updateServiceType(admin: Staff, id: string, patch: { enabl
   if (!current) throw notFound();
   const legal = patch.legalStatus ?? current.legalStatus;
   if (patch.enabled && legal !== "approved") throw conflict("not_legal", "לא ניתן להפעיל שירות שטרם אושר רגולטורית");
+  // Approving the legal status and enabling must be two deliberate steps.
+  if (patch.enabled && patch.legalStatus === "approved" && current.legalStatus !== "approved") {
+    throw conflict("not_legal", "אשרו את המעמד הרגולטורי תחילה, ולאחר מכן הפעילו את השירות בנפרד");
+  }
   const [row] = await db.update(serviceTypes).set({ ...patch, enabled: legal === "approved" ? patch.enabled ?? current.enabled : false }).where(eq(serviceTypes.id, id)).returning();
   await audit({ actorId: admin.id, actorRole: admin.role, action: "service_type.update", targetType: "service_type", targetId: id, data: patch as Record<string, unknown>, ip });
   return row;
@@ -363,7 +367,7 @@ export async function report(range: { from: Date; to: Date }) {
 export async function listAuditLogs(filter: { limit?: number; action?: string; actorId?: string }) {
   const db = await getDb();
   const conds: SQL[] = [];
-  if (filter.action) conds.push(ilike(auditLogs.action, `${filter.action}%`));
+  if (filter.action) conds.push(ilike(auditLogs.action, `${filter.action.replace(/[\\%_]/g, "\\$&")}%`));
   if (filter.actorId) conds.push(eq(auditLogs.actorId, filter.actorId));
   const rows = await db
     .select({ log: auditLogs, actorName: users.name })

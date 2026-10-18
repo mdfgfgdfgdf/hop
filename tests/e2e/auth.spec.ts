@@ -37,7 +37,7 @@ test.describe("authentication & role routing", () => {
     await page.getByLabel("סיסמה").fill("abcdefgh");
     await page.getByRole("checkbox").check();
     await page.getByTestId("signup-submit").click();
-    await expect(page.getByRole("alert").first()).toBeVisible();
+    await expect(page.getByTestId("signup-error")).toBeVisible();
     await expect(page).toHaveURL(/\/signup/);
   });
 
@@ -46,7 +46,7 @@ test.describe("authentication & role routing", () => {
     await page.getByLabel("אימייל").fill(ACCOUNTS.rider.email);
     await page.getByLabel("סיסמה").fill("wrong-password");
     await page.getByTestId("login-submit").click();
-    await expect(page.getByRole("alert")).toContainText("שגויים");
+    await expect(page.getByTestId("login-error")).toContainText("שגויים");
 
     await page.getByLabel("סיסמה").fill(ACCOUNTS.rider.password);
     await page.getByTestId("login-submit").click();

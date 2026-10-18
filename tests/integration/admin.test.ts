@@ -93,7 +93,7 @@ describe("admin/service verifyDriver & reviewDocument", () => {
     expect((await auditFor("driver.approve", user.id))[0]).toMatchObject({ actorId: admin.id, ip: "192.0.2.1" });
   });
 
-  it.skip("CONCERN: a support agent can skip the document check by writing 'override' in the notes", async () => {
+  it("a support agent can skip the document check by writing 'override' in the notes", async () => {
     const { user } = await makeDriver(db, { verificationStatus: "under_review", online: false });
     await expect(verifyDriver(support, user.id, { decision: "approve", notes: "override" })).rejects.toMatchObject({ code: "documents_missing" });
   });
@@ -115,7 +115,7 @@ describe("admin/service verifyDriver & reviewDocument", () => {
     await expect(verifyDriver(admin, "missing", { decision: "reject" })).rejects.toMatchObject({ status: 404 });
   });
 
-  it.skip("BUG: a driver suspended mid-ride is set back to online when the ride completes", async () => {
+  it("a driver suspended mid-ride is set back to online when the ride completes", async () => {
     // completeRide / releaseDriver / driver-cancel set availability "online" unconditionally.
     const rider = await makeUser(db, "rider");
     const { user } = await makeDriver(db, NEAR);

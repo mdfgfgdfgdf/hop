@@ -44,3 +44,12 @@ NEXT_PUBLIC_MAP_STYLE_URL=https://tiles.openfreemap.org/styles/liberty
 pnpm test                       # unit + integration on in-memory PGlite
 PW_CHROMIUM_PATH=/opt/pw-browsers/chromium pnpm test:e2e   # or `pnpm exec playwright install chromium`
 ```
+
+## Dev-server gotchas (learned the hard way)
+- Open the dev app at **http://localhost:3000**, not `127.0.0.1`: the Next dev client is only served to
+  allowed origins (`allowedDevOrigins` in `next.config.ts` lists both, but Playwright and scripts use
+  `localhost`). A blocked origin renders HTML that never hydrates.
+- Run **one** `next dev` per checkout. Two dev servers sharing `.next/dev` corrupt the Turbopack cache and
+  the page reloads forever with "HMR hash mismatch". Recovery: stop all `next` processes
+  (`scripts/dev/free-port.sh <port>`), `rm -rf .next/dev`, start again. Playwright's `webServer` reuses a
+  running server on :3100 when present, and `scripts/dev/e2e-server.mjs` resets the e2e database first.

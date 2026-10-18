@@ -9,6 +9,7 @@ import { getDb, type Db, type Tx } from "../db/client";
 import {
   driverProfiles,
   ledgerEntries,
+  promotions,
   quotes,
   ratings,
   rideEvents,
@@ -110,13 +111,16 @@ export async function loadRideContext(db: Db | Tx, ride: Ride) {
   return { serviceType: serviceType!, rider: rider ?? null, driver, driverProfile, offer };
 }
 
-export async function getRideDTO(rideId: string, viewer: Viewer, opts: { skipAuth?: boolean } = {}): Promise<RideDTO> {
+export async function getRideDTO(rideId: string, viewer: Viewer, opts: { skipAuth?: boolean; stripCounterparts?: boolean } = {}): Promise<RideDTO> {
   const db = await getDb();
   const ride = (await db.select().from(rides).where(eq(rides.id, rideId)))[0];
   if (!ride) throw notFound("הנסיעה לא נמצאה");
   if (!opts.skipAuth) assertCanView(ride, viewer);
   const ctx = await loadRideContext(db, ride);
-  return serializeRide(ride, ctx, viewer);
+  const dto = serializeRide(ride, ctx, viewer);
+  // A driver who declined or cancelled is no longer a party: they get the
+  // resulting status but no details about the rider or the next driver.
+  return opts.stripCounterparts ? { ...dto, rider: null, driver: null, offer: null } : dto;
 }
 
 export function assertCanView(ride: Ride, viewer: Viewer) {
@@ -155,6 +159,8 @@ export async function createQuotes(input: {
   if (types.length === 0) throw conflict("no_services", "אין כרגע שירותים פעילים");
 
   const drivers = await availableDrivers(db);
+  const radiusM = await getSetting("dispatch.searchRadiusM", db);
+  const minAcceptanceRateBp = await getSetting("dispatch.minAcceptanceRateBp", db);
   const now = new Date();
   const expiresAt = new Date(now.getTime() + config.quoteTtlSec * 1000);
 
@@ -173,10 +179,9 @@ export async function createQuotes(input: {
           at: now,
           promotion,
         });
-        const eligible = drivers.filter((d) => st.vehicleClasses.includes(d.profile.vehicleClass));
-        const nearestEta = eligible
-          .map((d) => estimateRoute({ lat: d.profile.lastLat!, lng: d.profile.lastLng! }, pickup).durationS)
-          .sort((a, b) => a - b)[0];
+        // Same filter the dispatcher uses, so riders never see drivers that could not be offered the ride.
+        const eligible = rankCandidates({ pickupLat: pickup.lat, pickupLng: pickup.lng, excludedDriverIds: [] }, st, drivers, { radiusM, minAcceptanceRateBp });
+        const nearestEta = eligible[0]?.etaS;
         const [row] = await db
           .insert(quotes)
           .values({
@@ -248,6 +253,8 @@ export async function createRide(input: {
 }): Promise<RideDTO> {
   const db = await getDb();
   const rideId = await db.transaction(async (tx) => {
+    // Serialise bookings per rider so two concurrent requests cannot both pass the active-ride check.
+    await tx.select({ id: users.id }).from(users).where(eq(users.id, input.rider.id)).for("update");
     const [quote] = await tx.select().from(quotes).where(eq(quotes.id, input.quoteId)).for("update");
     if (!quote || quote.riderId !== input.rider.id) throw notFound("הצעת המחיר לא נמצאה");
     if (quote.usedByRideId) throw conflict("quote_used", "הצעת המחיר כבר נוצלה");
@@ -290,6 +297,9 @@ export async function createRide(input: {
       })
       .returning();
     await tx.update(quotes).set({ usedByRideId: ride.id }).where(eq(quotes.id, quote.id));
+    if (quote.promoCode) {
+      await tx.update(promotions).set({ usedCount: sql`${promotions.usedCount} + 1` }).where(eq(promotions.code, quote.promoCode));
+    }
     await addEvent(tx, ride.id, "requested", input.rider, { quoteId: quote.id, paymentMethod: input.paymentMethod });
     assertTransition("requested", "searching");
     await tx.update(rides).set({ status: "searching", version: sql`${rides.version} + 1` }).where(eq(rides.id, ride.id));
@@ -503,8 +513,8 @@ export async function respondToOffer(input: { driver: Actor; rideId: string; acc
   await publishRide(input.rideId);
   if (outcome === "declined") await runMatching(input.rideId);
   // After declining, the driver is no longer a party to the ride; return the
-  // resulting state once (counterpart details are not included for them).
-  return getRideDTO(input.rideId, input.driver, { skipAuth: outcome === "declined" });
+  // resulting state once, without counterpart details.
+  return getRideDTO(input.rideId, input.driver, { skipAuth: outcome === "declined", stripCounterparts: outcome === "declined" });
 }
 
 /** Expires a pending offer whose deadline passed and re-dispatches. */
@@ -649,10 +659,9 @@ export async function completeRide(input: { driver: Actor; rideId: string }) {
       { rideId: ride.id, userId: null, type: "hop_commission", amountAgorot: finalFare.hopCommissionAgorot, note: `עמלה ${finalFare.commissionPercentBp / 100}%` },
       { rideId: ride.id, userId: input.driver.id, type: "driver_payout", amountAgorot: finalFare.driverPayoutAgorot },
     ]);
-    await tx.update(driverProfiles).set({ availability: "online" }).where(eq(driverProfiles.userId, input.driver.id));
+    await releaseDriverAvailability(tx, input.driver.id);
     await addEvent(tx, ride.id, "completed", input.driver, { actualDistanceM, actualDurationS, flags: flags.map((f) => f.code) });
   });
-  publish(channels.admin, "admin.driver", { driverId: input.driver.id, availability: "online" });
   await publishRide(input.rideId);
   return getRideDTO(input.rideId, input.driver);
 }
@@ -715,7 +724,7 @@ export async function cancelRide(input: { actor: Actor; rideId: string; reason?:
           version: sql`${rides.version} + 1`,
         })
         .where(eq(rides.id, ride.id));
-      await tx.update(driverProfiles).set({ availability: "online" }).where(eq(driverProfiles.userId, input.actor.id));
+      await releaseDriverAvailability(tx, input.actor.id);
       await addEvent(tx, ride.id, "driver_cancelled", input.actor, { reason: input.reason });
       return { kind: "redispatch" as const };
     }
@@ -743,7 +752,21 @@ export async function cancelRide(input: { actor: Actor; rideId: string; reason?:
 
   await publishRide(input.rideId);
   if (outcome.kind === "redispatch") await runMatching(input.rideId);
-  return getRideDTO(input.rideId, input.actor);
+  const left = outcome.kind === "redispatch"; // the driver is no longer a party after cancelling
+  return getRideDTO(input.rideId, input.actor, { skipAuth: left, stripCounterparts: left });
+}
+
+/**
+ * Puts a driver back in the pool after a ride ends — but only if they are
+ * still approved and active. A driver suspended mid-ride ends up offline.
+ */
+async function releaseDriverAvailability(tx: Tx, driverId: string) {
+  const [p] = await tx.select().from(driverProfiles).where(eq(driverProfiles.userId, driverId));
+  const [u] = await tx.select({ status: users.status }).from(users).where(eq(users.id, driverId));
+  const availability = p?.verificationStatus === "approved" && u?.status === "active" ? "online" : "offline";
+  await tx.update(driverProfiles).set({ availability }).where(eq(driverProfiles.userId, driverId));
+  publish(channels.admin, "admin.driver", { driverId, availability });
+  publish(channels.user(driverId), "driver.availability", { availability });
 }
 
 async function releaseDriver(tx: Tx, ride: Ride, reason: string) {
@@ -754,10 +777,7 @@ async function releaseDriver(tx: Tx, ride: Ride, reason: string) {
       .where(and(eq(rideOffers.rideId, ride.id), eq(rideOffers.status, "pending")));
     publish(channels.user(ride.offeredDriverId), "ride.offer.cancelled", { rideId: ride.id, reason });
   }
-  if (ride.driverId) {
-    await tx.update(driverProfiles).set({ availability: "online" }).where(eq(driverProfiles.userId, ride.driverId));
-    publish(channels.admin, "admin.driver", { driverId: ride.driverId, availability: "online" });
-  }
+  if (ride.driverId) await releaseDriverAvailability(tx, ride.driverId);
 }
 
 // ───────────────────────────── ratings ─────────────────────────────

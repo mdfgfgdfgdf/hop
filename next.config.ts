@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   // Cache Components so server pages read fresh data on every request.
   cacheComponents: false,
   reactStrictMode: true,
+  // Dev-only: allow the dev client when the app is opened via 127.0.0.1 (e2e, LAN testing).
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   poweredByHeader: false,
   // Native / WASM packages that must be required by Node at runtime rather
   // than bundled by Turbopack.

@@ -170,7 +170,7 @@ describe("dispatch cancellation", () => {
     expect(row.cancellationFeeAgorot).toBe(0);
   });
 
-  it.skip("BUG: driver cancel commits the re-dispatch but answers the driver with 403", async () => {
+  it("driver cancel commits the re-dispatch but answers the driver with 403", async () => {
     // cancelRide() ends with getRideDTO(rideId, actor) without skipAuth; after a
     // driver cancel the driver is no longer a party, so assertCanView throws.
     const rider = await makeUser(db, "rider");
@@ -180,7 +180,7 @@ describe("dispatch cancellation", () => {
     await expect(cancelRide({ actor: d1.user, rideId: ride.id })).resolves.toMatchObject({ id: ride.id });
   });
 
-  it.skip("BUG: a declining driver's response reveals the next offered driver and the rider", async () => {
+  it("a declining driver's response reveals the next offered driver and the rider", async () => {
     const rider = await makeUser(db, "rider");
     const d1 = await makeDriver(db, NEAR);
     await makeDriver(db, FARTHER);

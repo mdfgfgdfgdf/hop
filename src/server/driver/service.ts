@@ -9,6 +9,7 @@ import { env } from "../env";
 import { audit } from "../audit";
 import { publish, channels } from "../realtime/bus";
 import type { EarningsDTO } from "@/lib/types";
+import { dayKeyIL } from "../time";
 
 export const REQUIRED_DOCUMENTS: DocumentType[] = [
   "id_card",
@@ -144,7 +145,7 @@ export async function earnings(driverId: string, range: { from: Date; to: Date }
     gross += r.finalTotalAgorot ?? 0;
     commission += r.commissionAgorot ?? 0;
     net += r.driverPayoutAgorot ?? 0;
-    const day = (r.completedAt ?? r.createdAt).toISOString().slice(0, 10);
+    const day = dayKeyIL(r.completedAt ?? r.createdAt);
     const d = byDayMap.get(day) ?? { rides: 0, netAgorot: 0, grossAgorot: 0 };
     d.rides += 1;
     d.netAgorot += r.driverPayoutAgorot ?? 0;
