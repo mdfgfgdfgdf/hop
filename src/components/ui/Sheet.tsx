@@ -30,7 +30,7 @@ export function Sheet({ open = true, children, className, handle = true, side = 
           transition={{ type: "spring", stiffness: 380, damping: 36 }}
           className={cn(
             "glass glass-strong pointer-events-auto z-20",
-            "fixed inset-x-2 bottom-2 max-h-[82dvh] overflow-y-auto rounded-[30px] safe-bottom",
+            "fixed inset-x-2 bottom-2 max-h-[82dvh] overflow-y-auto rounded-[22px] safe-bottom",
             "lg:absolute lg:inset-x-auto lg:top-4 lg:bottom-4 lg:w-[420px] lg:max-h-none",
             side === "start" ? "lg:right-4" : "lg:left-4",
             className,

@@ -23,20 +23,22 @@ Typography: Heebo (loaded in root layout). Display headings use the `display` cl
 (800 weight, tight tracking). Body 16px. Numbers use `tabular-nums` (`ltr-nums` class for
 mixed LTR numerals inside RTL copy, e.g. plates, phone numbers, prices).
 
-## Surfaces — gray liquid glass
-The `.glass` recipe has four layers: a neutral gray translucent fill with strong backdrop blur/saturation and
-inner gray depth; a specular highlight (`::before`) that follows the pointer via `--gx/--gy` (set globally by
-`GlassLight`); a bevelled rim (`::after`, bright top-left to gray bottom-right); content on top.
+## Surfaces — real-product restraint
+After owner feedback ("looks vibe-coded"), the system is deliberately plain, like a shipping ride-hailing app:
 
-- `glass` — translucent panel with blur + specular highlight (`glass-strong` for more opacity,
-  `glass-md`/`glass-sm`/`glass-pill` for smaller radii, `glass-brand` for a blue glass).
-- Use glass for **floating** panels over the map (bottom sheets, offer cards, status chips,
-  top bars). Use `card` for content sitting on paper (lists, forms, admin tables).
-- Never stack glass on glass more than two levels. Keep text contrast ≥ 4.5:1 (add `glass-strong`
-  when the map is busy underneath).
-- All three apps use the light theme (`data-theme="light"`): blue and white, gray liquid glass. Dark tokens remain only for future use.
-  Tokens switch automatically; always use token colours (`bg-bg`, `text-fg`, `text-fg-muted`,
-  `bg-surface`, `border-line`) rather than hard-coded greys so both themes work.
+- Surfaces are solid white (`--surface`) with a 1 px hairline (`--line`) or one soft shadow. `.glass` is now
+  a near-opaque white panel with a light blur. Keep blur for the few controls that float over the map.
+- Buttons are flat and solid: `btn-primary` (HOP blue), `btn-ink` (near-black), `btn-glass` (white with a
+  hairline), `btn-ghost`. No gradients, gloss, glow or shimmer. Radius is 14 px; pills are only for small chips.
+- Radii: sheets 22 px (top corners), cards and inputs 10–14 px. Never round everything.
+- Type: a tight scale (28/22/17/15/13), bold headings, tabular numbers for money and time, terse microcopy.
+  No slogans in the UI, no exclamation marks, no explanatory paragraph under every control.
+- Lists look like real app lists: 56–64 px rows, hairline dividers, trailing values.
+- At most one discreet demo indicator per screen.
+- Motion is quick (150–250 ms). Springs only for physical things (sheet, knob). The logo animates only while
+  loading or searching.
+- All three apps use the light theme. Always use token colours (`bg-bg`, `text-fg`, `text-fg-muted`,
+  `bg-surface`, `border-line`).
 
 ## Components (`@/components/ui`)
 `Button` (variants: primary · glass · ink · ghost · danger · success; sizes sm · md · lg · icon;

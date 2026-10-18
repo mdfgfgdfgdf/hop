@@ -49,7 +49,7 @@ export function Island({ title, subtitle, mark = "idle", hopKey, leading, traili
       data-testid={rest["data-testid"]}
       data-tone={tone}
       className={cn("island pointer-events-auto", tone === "glass" ? "glass glass-strong" : "", expanded && "island-expanded", className)}
-      style={{ borderRadius: expanded ? 30 : 999 }}
+      style={{ borderRadius: expanded ? 20 : 999 }}
       transition={reduce ? { duration: 0 } : SPRING}
     >
       <motion.div layout="position" className="flex min-w-0 items-center gap-3">

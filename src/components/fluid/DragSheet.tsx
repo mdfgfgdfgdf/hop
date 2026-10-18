@@ -117,7 +117,7 @@ export function DragSheet({ snaps = [0.42, 0.9], snap, defaultSnap = 0, onSnapCh
         role="region"
         aria-label={rest["aria-label"]}
         data-testid={rest["data-testid"]}
-        className={cn("drag-sheet glass glass-strong pointer-events-auto absolute top-4 bottom-4 z-20 flex w-[420px] flex-col overflow-hidden rounded-[30px]", side === "start" ? "right-4" : "left-4", className)}
+        className={cn("drag-sheet glass glass-strong pointer-events-auto absolute top-4 bottom-4 z-20 flex w-[420px] flex-col overflow-hidden rounded-[22px]", side === "start" ? "right-4" : "left-4", className)}
       >
         {header}
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div>
@@ -131,7 +131,7 @@ export function DragSheet({ snaps = [0.42, 0.9], snap, defaultSnap = 0, onSnapCh
       aria-label={rest["aria-label"]}
       data-testid={rest["data-testid"]}
       data-snap={index}
-      className={cn("drag-sheet glass glass-strong pointer-events-auto fixed inset-x-2 bottom-0 z-20 flex flex-col rounded-t-[30px] rounded-b-none", className)}
+      className={cn("drag-sheet glass glass-strong pointer-events-auto fixed inset-x-2 bottom-0 z-20 flex flex-col rounded-t-[22px] rounded-b-none", className)}
       style={{ height: maxH + 40, y, paddingBottom: 40, marginBottom: -40 }}
       drag="y"
       dragListener={false}
