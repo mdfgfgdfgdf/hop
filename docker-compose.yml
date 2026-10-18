@@ -1,0 +1,15 @@
+# Optional: a real PostgreSQL for production-like development.
+# Set DATABASE_URL=postgres://hop:hop@localhost:5432/hop in .env.local
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: hop
+      POSTGRES_PASSWORD: hop
+      POSTGRES_DB: hop
+    ports:
+      - "5432:5432"
+    volumes:
+      - hop_pgdata:/var/lib/postgresql/data
+volumes:
+  hop_pgdata:

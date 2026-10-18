@@ -1,0 +1,13 @@
+import { chromium } from "@playwright/test";
+const [base, email, password, out, path] = process.argv.slice(2);
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });
+const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "he-IL" });
+await ctx.request.post(`${base}/api/auth/login`, { data: { email, password } });
+const page = await ctx.newPage();
+await page.goto(`${base}${path}`, { waitUntil: "commit" });
+await page.waitForFunction(() => Object.keys(document).some((k) => k.startsWith("__reactContainer")), null, { timeout: 60000 });
+await page.waitForTimeout(650);
+await page.screenshot({ path: `${out}/intro-a.png` });
+await page.waitForTimeout(700);
+await page.screenshot({ path: `${out}/intro-b.png` });
+await browser.close();
