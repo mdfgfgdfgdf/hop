@@ -4,13 +4,16 @@ import { PAYMENT_METHOD_HE } from "@/lib/labels";
 import type { RideDTO } from "@/lib/types";
 import { cn } from "@/components/ui";
 import { commissionOf, payoutOf, riderTotalOf } from "./labels";
+import { TEXT } from "./tone";
+
+const BOX = "rounded-2xl bg-[color-mix(in_oklab,var(--fg)_3.5%,transparent)] ring-1 ring-line";
 
 export function PayoutBreakdown({ ride, className, showLines = true }: { ride: RideDTO; className?: string; showLines?: boolean }) {
   const fare = ride.finalFare ?? ride.quotedFare;
   const cancelled = ride.status === "cancelled";
   if (cancelled) {
     return (
-      <div className={cn("rounded-2xl bg-[color-mix(in_oklab,var(--fg)_5%,transparent)] p-4 text-sm", className)}>
+      <div className={cn(BOX, "p-4 text-sm", className)}>
         <div className="flex items-center justify-between gap-3">
           <span className="text-fg-muted">הנסיעה בוטלה — לא בוצע חיוב נסיעה</span>
           <span className="font-bold tabular-nums">{formatILS(0)}</span>
@@ -29,7 +32,7 @@ export function PayoutBreakdown({ ride, className, showLines = true }: { ride: R
   const payout = payoutOf(ride);
   const commissionLabel = `עמלת HOP (${percentFromBp(fare.commissionPercentBp)}${fare.bookingFeeAgorot > 0 ? " + דמי הזמנה" : ""})`;
   return (
-    <div className={cn("rounded-2xl bg-[color-mix(in_oklab,var(--fg)_5%,transparent)] p-4", className)}>
+    <div className={cn(BOX, "p-4", className)}>
       <dl className="grid gap-2 text-sm">
         <div className="flex items-center justify-between gap-3">
           <dt className="text-fg-muted">{ride.status === "completed" ? "הנוסע שילם" : "מחיר לנוסע"}</dt>
@@ -42,7 +45,7 @@ export function PayoutBreakdown({ ride, className, showLines = true }: { ride: R
         <div className="divider my-1" />
         <div className="flex items-center justify-between gap-3">
           <dt className="font-bold">התשלום שלך</dt>
-          <dd className="text-lg font-extrabold text-success tabular-nums">{formatILS(payout)}</dd>
+          <dd className={cn("display text-lg tabular-nums", TEXT.success)}>{formatILS(payout)}</dd>
         </div>
         <div className="flex items-center justify-between gap-3 text-xs">
           <dt className="text-fg-muted">אמצעי תשלום</dt>
@@ -62,7 +65,7 @@ export function PayoutBreakdown({ ride, className, showLines = true }: { ride: R
               </li>
             ))}
           </ul>
-          {fare.isDemoTariff && <p className="mt-2 text-[11px] font-semibold text-amber-300">תעריף הדגמה — הסכומים אינם אמיתיים</p>}
+          {fare.isDemoTariff && <p className={cn("mt-2 text-[11px] font-semibold", TEXT.warning)}>תעריף הדגמה — הסכומים אינם אמיתיים</p>}
         </details>
       )}
     </div>

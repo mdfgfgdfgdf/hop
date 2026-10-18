@@ -18,7 +18,7 @@ export function CountdownRing({ expiresAt, remainingMs, totalMs, size = 92 }: { 
   return (
     <div className="relative grid place-items-center" style={{ width: size, height: size }} role="timer" aria-label={`נותרו ${secs} שניות לאישור`}>
       <svg width={size} height={size} className="-rotate-90" aria-hidden>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="color-mix(in oklab, var(--fg) 12%, transparent)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="color-mix(in oklab, var(--fg) 9%, transparent)" strokeWidth={stroke} />
         <motion.circle
           cx={size / 2}
           cy={size / 2}
@@ -36,7 +36,7 @@ export function CountdownRing({ expiresAt, remainingMs, totalMs, size = 92 }: { 
       </svg>
       <div className="absolute inset-0 grid place-items-center">
         <div className="text-center leading-none">
-          <div className="text-3xl font-extrabold tabular-nums">{secs}</div>
+          <div className="display text-[1.9rem] tabular-nums">{secs}</div>
           <div className="mt-0.5 text-[10px] font-bold text-fg-muted">שניות</div>
         </div>
       </div>

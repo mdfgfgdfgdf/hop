@@ -1,9 +1,9 @@
 "use client";
 /**
- * Driver map. Wraps the shared MapView,
- *
- * the route as a glowing line (dashed for the straight "guide" to pickup) and
- * drives the camera imperatively so it can follow the driver or frame a ride.
+ * Driver map. Wraps the shared MapView (light style, or the flat offline
+ * canvas when tiles are unavailable), styles the route as a soft brand line
+ * (dashed for the straight "guide" to pickup) and drives the camera
+ * imperatively so it can follow the driver or frame a ride.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Map as MLMap } from "maplibre-gl";
@@ -29,8 +29,6 @@ type Props = {
   padding?: Partial<Padding>;
   interactive?: boolean;
   showRecenter?: boolean;
-  /** Radar pulse around the driver's own position (online & waiting). */
-  pulse?: boolean;
   recenterClassName?: string;
   className?: string;
   children?: React.ReactNode;
@@ -49,7 +47,6 @@ export function DriverMap({
   padding,
   interactive = true,
   showRecenter = true,
-  pulse,
   recenterClassName,
   className,
   children,
@@ -172,10 +169,11 @@ export function DriverMap({
       }
       try {
         map.setPaintProperty("hop-route-casing", "line-color", "#2457FF");
-        map.setPaintProperty("hop-route-casing", "line-opacity", guide ? 0 : 0.18);
-        map.setPaintProperty("hop-route-casing", "line-width", 14);
-        map.setPaintProperty("hop-route-casing", "line-blur", 6);
-        map.setPaintProperty("hop-route-line", "line-color", guide ? "#7d9bff" : "#2457FF");
+        map.setPaintProperty("hop-route-casing", "line-opacity", guide ? 0 : 0.16);
+        map.setPaintProperty("hop-route-casing", "line-width", 12);
+        map.setPaintProperty("hop-route-casing", "line-blur", 4);
+        map.setPaintProperty("hop-route-line", "line-color", "#2457FF");
+        map.setPaintProperty("hop-route-line", "line-opacity", guide ? 0.75 : 1);
         map.setPaintProperty("hop-route-line", "line-width", guide ? 4 : 5);
         map.setPaintProperty("hop-route-line", "line-dasharray", guide ? [1.2, 1.6] : [1, 0]);
       } catch {
@@ -190,11 +188,9 @@ export function DriverMap({
     <div
       className={cn(
         "relative h-full w-full",
-        // Location halo on the driver's own position.
-        "[&_.pin-me]:shadow-[0_0_0_7px_rgba(36,87,255,0.28),0_0_24px_6px_rgba(36,87,255,0.45)]",
-        "[&_.hop-marker-car]:shadow-[0_0_0_6px_rgba(36,87,255,0.3),0_10px_24px_-8px_rgba(0,0,0,0.8)]",
-        pulse &&
-          "[&_.pin-me]:relative [&_.pin-me]:after:absolute [&_.pin-me]:after:-inset-4 [&_.pin-me]:after:animate-ping [&_.pin-me]:after:rounded-full [&_.pin-me]:after:bg-brand/35 [&_.pin-me]:after:content-['']",
+        // Soft location halo on the driver's own position / car.
+        "[&_.pin-me]:shadow-[0_0_0_8px_rgba(36,87,255,0.16),0_6px_14px_-4px_rgba(36,87,255,0.55)]",
+        "[&_.hop-marker-car]:shadow-[0_0_0_6px_rgba(36,87,255,0.16),0_10px_22px_-8px_rgba(17,19,24,0.4),0_0_0_1px_rgba(17,19,24,0.06)]",
         className,
       )}
     >
@@ -210,8 +206,8 @@ export function DriverMap({
           }}
           aria-label="מרכוז המפה"
           className={cn(
-            "glass glass-pill absolute z-10 grid h-12 w-12 place-items-center text-fg transition-opacity",
-            following ? "opacity-70" : "opacity-100",
+            "glass glass-strong glass-pill absolute z-10 grid h-12 w-12 place-items-center transition-colors",
+            following ? "text-fg-muted" : "text-brand",
             recenterClassName ?? "end-3 top-24",
           )}
         >

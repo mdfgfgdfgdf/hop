@@ -5,8 +5,10 @@ import { motion } from "motion/react";
 import { BadgeCheck, CircleAlert, Ban, FileWarning } from "lucide-react";
 import { DOCUMENT_TYPE_HE } from "@/lib/labels";
 import type { DriverProfileDTO } from "@/lib/types";
+import { AnimatedMark } from "@/components/brand/AnimatedLogo";
 import { Button, cn } from "@/components/ui";
 import { NeedleLoader } from "./motion";
+import { TEXT } from "./tone";
 
 export function VerificationCard({ profile, missing, onFix, compact }: { profile: DriverProfileDTO; missing: string[]; onFix?: () => void; compact?: boolean }) {
   const s = profile.verificationStatus;
@@ -15,7 +17,7 @@ export function VerificationCard({ profile, missing, onFix, compact }: { profile
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 320, damping: 30 }}
-      className={cn("rounded-[26px] border p-5", tone, compact ? "" : "text-center")}
+      className={cn("rounded-[26px] p-5 ring-1", tone, compact ? "" : "py-7 text-center")}
       role="status"
       data-testid="verification-status"
       data-status={s}
@@ -34,22 +36,26 @@ export function VerificationCard({ profile, missing, onFix, compact }: { profile
 
   if (s === "approved")
     return shell(
-      "border-success/35 bg-success/10",
-      <span className="grid place-items-center rounded-full bg-success/20 text-success" style={{ width: size, height: size }}>
-        <BadgeCheck size={size * 0.55} aria-hidden />
+      "bg-[color-mix(in_oklab,var(--success)_7%,var(--surface))] ring-success/30",
+      // Approval is a brand moment: the mark hops and its needle snaps to full.
+      <span className="relative grid place-items-center" style={{ width: size, height: size }}>
+        <AnimatedMark size={size} mode="success" hopOn="hover" title="HOP" />
+        <span className="absolute -end-1 -bottom-1 grid place-items-center rounded-full bg-success text-white ring-[3px] ring-surface" style={{ width: size * 0.42, height: size * 0.42 }} aria-hidden>
+          <BadgeCheck size={size * 0.28} />
+        </span>
       </span>,
       "החשבון מאושר",
       "אפשר לעבור למצב זמין ולהתחיל לקבל נסיעות. נסיעה טובה!",
       !compact && (
-        <Link href="/drive" className="btn btn-primary btn-lg">
-          למסך הנהיגה
+        <Link href="/drive" className="btn btn-primary btn-lg w-full sm:w-auto sm:min-w-56">
+          התחלת נהיגה
         </Link>
       ),
     );
   if (s === "under_review")
     return shell(
-      "border-brand/35 bg-brand/10",
-      <span className="grid place-items-center rounded-full bg-brand/15" style={{ width: size, height: size }}>
+      "bg-brand-50 ring-brand/20",
+      <span className="grid place-items-center rounded-full bg-surface shadow-[0_8px_20px_-12px_rgba(36,87,255,0.7)] ring-1 ring-brand/15" style={{ width: size, height: size }}>
         <NeedleLoader size={size * 0.7} label="בבדיקה" />
       </span>,
       "המסמכים בבדיקה — נעדכן אותך",
@@ -61,14 +67,14 @@ export function VerificationCard({ profile, missing, onFix, compact }: { profile
     );
   if (s === "rejected")
     return shell(
-      "border-danger/40 bg-danger/10",
-      <span className="grid place-items-center rounded-full bg-danger/15 text-[#ff8a8d]" style={{ width: size, height: size }}>
+      "bg-[color-mix(in_oklab,var(--danger)_6%,var(--surface))] ring-danger/30",
+      <span className={cn("grid place-items-center rounded-full bg-danger/12", TEXT.danger)} style={{ width: size, height: size }}>
         <CircleAlert size={size * 0.55} aria-hidden />
       </span>,
       "הבקשה לא אושרה — אפשר לתקן",
       <>
         {profile.rejectionReason ? (
-          <span className="mb-2 block rounded-xl bg-danger/12 px-3 py-2 text-start font-semibold text-[#ffb3b5]">סיבה: {profile.rejectionReason}</span>
+          <span className={cn("mb-2 block rounded-xl bg-danger/8 px-3 py-2 text-start font-semibold", TEXT.danger)}>סיבה: {profile.rejectionReason}</span>
         ) : null}
         עדכנו את הפרטים או העלו מחדש את המסמכים שסומנו — ונבדוק שוב.
       </>,
@@ -80,8 +86,8 @@ export function VerificationCard({ profile, missing, onFix, compact }: { profile
     );
   if (s === "suspended")
     return shell(
-      "border-danger/40 bg-danger/10",
-      <span className="grid place-items-center rounded-full bg-danger/15 text-[#ff8a8d]" style={{ width: size, height: size }}>
+      "bg-[color-mix(in_oklab,var(--danger)_6%,var(--surface))] ring-danger/30",
+      <span className={cn("grid place-items-center rounded-full bg-danger/12", TEXT.danger)} style={{ width: size, height: size }}>
         <Ban size={size * 0.5} aria-hidden />
       </span>,
       "החשבון מושעה",
@@ -94,8 +100,8 @@ export function VerificationCard({ profile, missing, onFix, compact }: { profile
       </Link>,
     );
   return shell(
-    "border-warning/40 bg-warning/10",
-    <span className="grid place-items-center rounded-full bg-warning/15 text-warning" style={{ width: size, height: size }}>
+    "bg-[color-mix(in_oklab,var(--warning)_10%,var(--surface))] ring-warning/40",
+    <span className={cn("grid place-items-center rounded-full bg-warning/20", TEXT.warning)} style={{ width: size, height: size }}>
       <FileWarning size={size * 0.5} aria-hidden />
     </span>,
     missing.length ? `חסרים עוד ${missing.length} מסמכים` : "כמעט שם",

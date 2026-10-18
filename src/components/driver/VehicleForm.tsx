@@ -8,6 +8,7 @@ import type { DriverProfileDTO, ServiceTypeDTO, VehicleClass } from "@/lib/types
 import { Button, Field, Input, Select, Skeleton, cn, useToast } from "@/components/ui";
 import { errorMessage } from "./errors";
 import { Notice } from "./Notice";
+import { TEXT } from "./tone";
 
 const CLASSES: { value: VehicleClass; icon: typeof Car; hint: string }[] = [
   { value: "standard", icon: Car, hint: "עד 4 נוסעים" },
@@ -144,14 +145,18 @@ export function VehicleForm({
                 aria-checked={active}
                 onClick={() => setClass(value)}
                 className={cn(
-                  "relative flex min-h-20 flex-col items-start gap-1 rounded-2xl border p-3 text-start transition-colors",
-                  active ? "border-brand bg-brand/15" : "border-line bg-[color-mix(in_oklab,var(--fg)_4%,transparent)] hover:bg-[color-mix(in_oklab,var(--fg)_8%,transparent)]",
+                  "relative flex min-h-[84px] flex-col items-start gap-1 rounded-2xl p-3 text-start transition-[background-color,box-shadow]",
+                  active ? "bg-brand-50 shadow-[0_8px_20px_-14px_rgba(36,87,255,0.8)] ring-2 ring-brand" : "bg-bg ring-1 ring-line hover:bg-surface",
                 )}
               >
-                <Icon size={20} aria-hidden className={active ? "text-[#8fb0ff]" : "text-fg-muted"} />
+                <Icon size={20} aria-hidden className={active ? "text-brand" : "text-fg-muted"} />
                 <span className="text-sm font-bold">{VEHICLE_CLASS_HE[value]}</span>
                 <span className="text-[11px] text-fg-muted">{hint}</span>
-                {active && <Check size={16} className="absolute end-2.5 top-2.5 text-[#8fb0ff]" aria-hidden />}
+                {active && (
+                  <span className="absolute end-2.5 top-2.5 grid h-5 w-5 place-items-center rounded-full bg-brand text-white" aria-hidden>
+                    <Check size={13} strokeWidth={3} />
+                  </span>
+                )}
               </button>
             );
           })}
@@ -236,8 +241,8 @@ export function VehicleForm({
                 <label
                   key={st.id}
                   className={cn(
-                    "flex min-h-14 items-start gap-3 rounded-2xl border p-3 transition-colors",
-                    !fits ? "cursor-not-allowed border-line opacity-55" : checked ? "cursor-pointer border-brand bg-brand/12" : "cursor-pointer border-line hover:bg-[color-mix(in_oklab,var(--fg)_5%,transparent)]",
+                    "flex min-h-14 items-start gap-3 rounded-2xl p-3 transition-[background-color,box-shadow]",
+                    !fits ? "cursor-not-allowed bg-bg opacity-60 ring-1 ring-line" : checked ? "cursor-pointer bg-brand-50 ring-2 ring-brand" : "cursor-pointer bg-bg ring-1 ring-line hover:bg-surface",
                   )}
                 >
                   <input
@@ -257,7 +262,7 @@ export function VehicleForm({
           </div>
         )}
         {errors.serviceTypeIds && (
-          <p className="mt-2 text-sm font-semibold text-[#ff8a8d]" role="alert">
+          <p className={cn("mt-2 text-sm font-semibold", TEXT.danger)} role="alert">
             {errors.serviceTypeIds}
           </p>
         )}

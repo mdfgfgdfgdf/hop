@@ -5,11 +5,12 @@ import { Info, TrendingUp } from "lucide-react";
 import { api } from "@/lib/api";
 import { formatILS } from "@/lib/format";
 import type { EarningsDTO } from "@/lib/types";
-import { DemoBanner, Segmented, Skeleton } from "@/components/ui";
+import { DemoBanner, Segmented, Skeleton, cn } from "@/components/ui";
 import { DriverPage } from "./DriverPage";
 import { CountUp, NeedleLoader, StaggerItem, StaggerList } from "./motion";
 import { Notice } from "./Notice";
 import { errorMessage } from "./errors";
+import { BRAND_GLASS, CHIP, TEXT } from "./tone";
 
 type Range = "today" | "week" | "month" | "all";
 const RANGES: { value: Range; label: string; long: string }[] = [
@@ -55,7 +56,12 @@ export function EarningsView() {
   return (
     <DriverPage title="הכנסות" subtitle="מבוסס על נסיעות שהושלמו בלבד">
       <div className="grid gap-4">
-        <Segmented value={range} onChange={setRange} options={RANGES.map((r) => ({ value: r.value, label: r.label }))} className="w-full justify-between [&>button]:min-h-11 [&>button]:flex-1 [&>button[aria-selected=true]]:bg-brand! [&>button[aria-selected=true]]:text-white! [&>button[aria-selected=true]]:shadow-[0_8px_24px_-10px_rgba(36,87,255,0.9)]!" />
+        <Segmented
+          value={range}
+          onChange={setRange}
+          options={RANGES.map((r) => ({ value: r.value, label: r.label }))}
+          className="w-full justify-between bg-surface/85! p-1.5 shadow-[0_1px_2px_rgba(17,19,24,0.04),0_10px_24px_-18px_rgba(17,19,24,0.35)] ring-1 ring-line [&>button]:relative [&>button]:min-h-11 [&>button]:flex-1 [&>button[aria-selected=true]]:bg-brand! [&>button[aria-selected=true]]:text-white! [&>button[aria-selected=true]]:shadow-[0_8px_18px_-10px_rgba(36,87,255,0.85),inset_0_1px_0_rgba(255,255,255,0.35)]!"
+        />
 
         {error && (
           <Notice tone="danger" live title="לא הצלחנו לטעון את ההכנסות">
@@ -63,15 +69,14 @@ export function EarningsView() {
           </Notice>
         )}
 
-        <div className="glass glass-brand relative overflow-hidden p-5" data-testid="earnings-net">
-          <span aria-hidden className="pointer-events-none absolute -end-10 -top-12 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
+        <div className={cn(BRAND_GLASS, "relative overflow-hidden p-5 sm:p-6")} data-testid="earnings-net">
           <div className="relative flex items-start justify-between gap-3">
-            <div>
-              <div className="text-sm font-bold text-white/80">נטו — שלך · {meta.long}</div>
-              <div className="display mt-2 text-[3.1rem] leading-none tabular-nums">
-                {e ? <CountUp key={range} value={e.netAgorot} format={(n) => formatILS(n)} /> : <Skeleton className="h-12 w-40 bg-white/20" />}
+            <div className="min-w-0">
+              <div className="text-sm font-bold text-white">נטו — שלך · {meta.long}</div>
+              <div className="display mt-2.5 text-[3.2rem] leading-none tabular-nums">
+                {e ? <CountUp key={range} value={e.netAgorot} format={(n) => formatILS(n)} /> : <Skeleton className="h-12 w-40 bg-white/25" />}
               </div>
-              <div className="mt-3 text-sm text-white/85">
+              <div className="mt-3 text-sm font-medium text-white">
                 {e ? (
                   <>
                     {e.ridesCompleted} נסיעות שהושלמו{avg != null && <> · ממוצע {formatILS(avg)} לנסיעה</>}
@@ -81,10 +86,12 @@ export function EarningsView() {
                 )}
               </div>
             </div>
-            <TrendingUp size={28} className="shrink-0 text-white/70" aria-hidden />
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/18 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]" aria-hidden>
+              <TrendingUp size={24} />
+            </span>
           </div>
-          {e?.isDemoTariff && <DemoBanner className="relative mt-4 border-white/30 bg-white/15 text-white!" text="תעריף הדגמה — הסכומים אינם אמיתיים" />}
         </div>
+        {e?.isDemoTariff && <DemoBanner className="-mt-1 justify-self-start" text="תעריף הדגמה — הסכומים אינם אמיתיים" />}
 
         <div className="grid grid-cols-2 gap-2">
           <MoneyStat label="ברוטו" hint="מה ששילמו הנוסעים" value={e?.grossAgorot} />
@@ -103,7 +110,10 @@ export function EarningsView() {
               <span className="text-sm text-fg-muted">סוכמים את הנסיעות…</span>
             </div>
           ) : e.byDay.length === 0 ? (
-            <div className="py-8 text-center">
+            <div className="flex flex-col items-center py-8 text-center">
+              <span className={cn("mb-3 grid h-12 w-12 place-items-center rounded-2xl", CHIP.brand)} aria-hidden>
+                <TrendingUp size={22} />
+              </span>
               <div className="display text-lg">{range === "today" ? "היום עוד לא התחיל" : "שקט בתקופה הזו"}</div>
               <p className="mt-1 text-sm text-fg-muted">{range === "today" ? "ההכנסה הראשונה של היום תופיע כאן ברגע שתסיימו נסיעה." : "אין נסיעות שהושלמו בטווח הזה. נסו טווח רחב יותר."}</p>
             </div>
@@ -112,7 +122,7 @@ export function EarningsView() {
               {e.byDay.map((d) => {
                 const l = dayLabel(d.date);
                 return (
-                  <StaggerItem key={d.date} className="rounded-2xl px-2 py-2.5 hover:bg-[color-mix(in_oklab,var(--fg)_4%,transparent)]">
+                  <StaggerItem key={d.date} className="rounded-2xl px-2 py-3 transition-colors hover:bg-bg">
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <div className="text-sm font-bold">
@@ -122,10 +132,10 @@ export function EarningsView() {
                           {d.rides} נסיעות · ברוטו {formatILS(d.grossAgorot)}
                         </div>
                       </div>
-                      <div className="text-end text-base font-extrabold tabular-nums">{formatILS(d.netAgorot)}</div>
+                      <div className="display text-end text-base tabular-nums">{formatILS(d.netAgorot)}</div>
                     </div>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--fg)_8%,transparent)]" aria-hidden>
-                      <div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(4, (d.netAgorot / max) * 100)}%` }} />
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--fg)_6%,transparent)]" aria-hidden>
+                      <div className="h-full rounded-full bg-[linear-gradient(90deg,#4a76ff,var(--brand))]" style={{ width: `${Math.max(4, (d.netAgorot / max) * 100)}%` }} />
                     </div>
                   </StaggerItem>
                 );
@@ -145,9 +155,9 @@ export function EarningsView() {
 
 function MoneyStat({ label, hint, value, negative, strong }: { label: string; hint: string; value: number | undefined; negative?: boolean; strong?: boolean }) {
   return (
-    <div className={"card p-4 " + (strong ? "border-brand/40 bg-brand/10" : "")}>
+    <div className={cn("card p-4", strong && "border-brand/25 bg-brand-50")}>
       <div className="text-xs font-bold text-fg-muted">{label}</div>
-      <div className={"mt-1 text-xl font-extrabold tabular-nums tracking-tight " + (strong ? "text-[#a9c0ff]" : "")}>
+      <div className={cn("display mt-1.5 text-xl tabular-nums", strong && TEXT.brand)}>
         {value == null ? <Skeleton className="h-6 w-20" /> : negative && value > 0 ? formatILS(-value) : formatILS(value)}
       </div>
       <div className="mt-0.5 text-[11px] text-fg-muted">{hint}</div>

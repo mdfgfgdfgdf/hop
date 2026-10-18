@@ -6,7 +6,8 @@ import { Send } from "lucide-react";
 import { api, type TicketDTO } from "@/lib/api";
 import { formatDateTime, formatTime } from "@/lib/format";
 import { TICKET_CATEGORY_HE, TICKET_STATUS_HE } from "@/lib/labels";
-import { Button, Pill, Textarea, cn } from "@/components/ui";
+import { Button, Textarea, cn } from "@/components/ui";
+import { TonePill } from "./TonePill";
 import { LogoMark } from "@/components/brand/Logo";
 import { useSession } from "@/components/app/session";
 import { useDriverRuntime } from "./DriverRuntime";
@@ -14,6 +15,7 @@ import { DriverPage } from "./DriverPage";
 import { NeedleLoader } from "./motion";
 import { Notice } from "./Notice";
 import { errorMessage } from "./errors";
+import { TEXT } from "./tone";
 
 export function TicketThread({ id }: { id: string }) {
   const { user } = useSession();
@@ -73,8 +75,12 @@ export function TicketThread({ id }: { id: string }) {
       ) : (
         <div className="grid gap-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Pill tone={ticket.status === "resolved" ? "success" : ticket.status === "in_progress" ? "warning" : ticket.status === "closed" ? "muted" : "brand"} className={ticket.status === "open" ? "bg-brand/20! text-[#b8caff]!" : undefined}>{TICKET_STATUS_HE[ticket.status]}</Pill>
-            {(ticket.priority === "urgent" || ticket.priority === "high") && <Pill tone="danger">דחוף</Pill>}
+            <TonePill tone={ticket.status === "resolved" ? "success" : ticket.status === "in_progress" ? "warning" : ticket.status === "closed" ? "muted" : "brand"}>{TICKET_STATUS_HE[ticket.status]}</TonePill>
+            {(ticket.priority === "urgent" || ticket.priority === "high") && (
+              <TonePill tone="danger">
+                דחוף
+              </TonePill>
+            )}
             <span className="text-xs text-fg-muted">{ticket.status === "open" ? "קיבלנו את הפנייה — נחזור אליך כאן" : ticket.status === "in_progress" ? "הפנייה בטיפול צוות HOP" : ""}</span>
           </div>
           <ol className="grid gap-3" aria-label="הודעות">
@@ -89,10 +95,17 @@ export function TicketThread({ id }: { id: string }) {
                   className={cn("flex items-end gap-2", mine ? "flex-row-reverse" : "")}
                 >
                   {!mine && <LogoMark size={30} />}
-                  <div className={cn("max-w-[82%] rounded-3xl px-4 py-3 text-sm leading-relaxed", mine ? "rounded-ee-md bg-brand text-white" : "rounded-es-md border border-line bg-surface")}>
-                    {!mine && <div className="mb-0.5 text-[11px] font-extrabold text-[#8fb0ff]">צוות HOP</div>}
+                  <div
+                    className={cn(
+                      "max-w-[82%] rounded-3xl px-4 py-3 text-sm leading-relaxed",
+                      mine
+                        ? "rounded-ee-md bg-[linear-gradient(180deg,#3d6bff,var(--brand)_60%,var(--brand-600))] text-white shadow-[0_10px_24px_-14px_rgba(36,87,255,0.8)]"
+                        : "rounded-es-md bg-surface shadow-[0_1px_2px_rgba(17,19,24,0.04),0_10px_24px_-18px_rgba(17,19,24,0.35)] ring-1 ring-line",
+                    )}
+                  >
+                    {!mine && <div className={cn("mb-0.5 text-[11px] font-extrabold", TEXT.brand)}>צוות HOP</div>}
                     <div className="whitespace-pre-wrap">{m.body}</div>
-                    <div className={cn("mt-1 text-[10px] tabular-nums", mine ? "text-white/70" : "text-fg-muted")}>{formatTime(m.createdAt)}</div>
+                    <div className={cn("mt-1 text-[10px] font-medium tabular-nums", mine ? "text-white/85" : "text-fg-muted")}>{formatTime(m.createdAt)}</div>
                   </div>
                 </motion.li>
               );
@@ -102,7 +115,7 @@ export function TicketThread({ id }: { id: string }) {
           {closed ? (
             <Notice tone="info">הפנייה נסגרה. לבעיה חדשה פתחו פנייה חדשה ממסך התמיכה.</Notice>
           ) : (
-            <form onSubmit={send} className="sticky bottom-3 z-10 glass glass-md flex items-end gap-2 p-2">
+            <form onSubmit={send} className="glass glass-strong sticky bottom-3 z-10 flex items-end gap-2 rounded-[26px] p-2">
               <Textarea value={reply} onChange={(e) => setReply(e.target.value.slice(0, 3000))} placeholder="כתבו תגובה…" aria-label="תגובה" className="min-h-12 flex-1 resize-none border-0 bg-transparent py-3 shadow-none" rows={1} data-testid="reply-input" />
               <Button type="submit" size="icon" loading={sending} disabled={!reply.trim()} aria-label="שליחה" className="h-12 w-12 shrink-0">
                 {!sending && <Send size={18} className="-scale-x-100" aria-hidden />}

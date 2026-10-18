@@ -7,12 +7,14 @@ import { api } from "@/lib/api";
 import { formatILS, formatTime } from "@/lib/format";
 import { RIDE_STATUS_SHORT_HE } from "@/lib/labels";
 import type { RideDTO } from "@/lib/types";
-import { Button, Pill } from "@/components/ui";
+import { Button, cn } from "@/components/ui";
+import { TonePill } from "./TonePill";
 import { DriverPage } from "./DriverPage";
 import { NeedleLoader, StaggerItem, StaggerList } from "./motion";
 import { Notice } from "./Notice";
 import { errorMessage } from "./errors";
 import { payoutOf } from "./labels";
+import { CHIP, TEXT } from "./tone";
 
 const PAGE = 20;
 
@@ -88,7 +90,7 @@ export function HistoryList() {
         </div>
       ) : rides && rides.length === 0 ? (
         <div className="card flex flex-col items-center px-6 py-14 text-center">
-          <span className="mb-4 grid h-16 w-16 place-items-center rounded-3xl bg-brand/15 text-[#8fb0ff]">
+          <span className={cn("mb-4 grid h-16 w-16 place-items-center rounded-3xl", CHIP.brand)}>
             <History size={30} aria-hidden />
           </span>
           <div className="display text-xl">הדרך עוד לפניך</div>
@@ -101,7 +103,7 @@ export function HistoryList() {
         <div className="grid gap-5">
           {groups.map((g) => (
             <section key={g.key} className="min-w-0" aria-label={today ? dayTitle(g.key, today.t, today.y) : g.key}>
-              <h2 className="mb-2 px-1 text-xs font-extrabold text-fg-muted">{today ? dayTitle(g.key, today.t, today.y) : ""}</h2>
+              <h2 className="mb-2 px-1 text-sm font-extrabold text-fg-muted">{today ? dayTitle(g.key, today.t, today.y) : ""}</h2>
               <StaggerList className="card min-w-0 divide-y divide-line overflow-hidden p-0">
                 {g.rides.map((r) => (
                   <StaggerItem key={r.id}>
@@ -126,9 +128,9 @@ function RideRow({ ride }: { ride: RideDTO }) {
   const active = ride.status !== "completed" && ride.status !== "cancelled";
   const tone = ride.status === "completed" ? "success" : ride.status === "cancelled" ? "muted" : "brand";
   return (
-    <Link href={active ? "/drive" : `/drive/history/${ride.id}`} className="flex min-h-[84px] items-center gap-3 px-4 py-3 transition-colors hover:bg-[color-mix(in_oklab,var(--fg)_4%,transparent)]" data-testid="history-row">
-      <div className="w-12 shrink-0 text-center">
-        <div className="text-sm font-extrabold tabular-nums ltr-nums">{formatTime(ride.completedAt ?? ride.cancelledAt ?? ride.requestedAt)}</div>
+    <Link href={active ? "/drive" : `/drive/history/${ride.id}`} className="flex min-h-[84px] items-center gap-3 px-4 py-3 transition-colors hover:bg-bg" data-testid="history-row">
+      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-bg ring-1 ring-line">
+        <div className="text-[13px] font-extrabold tabular-nums ltr-nums">{formatTime(ride.completedAt ?? ride.cancelledAt ?? ride.requestedAt)}</div>
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-bold">{short(ride.pickup.address)}</div>
@@ -138,15 +140,15 @@ function RideRow({ ride }: { ride: RideDTO }) {
           <span className="min-w-0 truncate">{short(ride.dropoff.address)}</span>
         </div>
         <div className="mt-1 flex min-w-0 items-center gap-2 text-xs text-fg-muted">
-          <Pill tone={tone} className={tone === "brand" ? "h-6 bg-brand/20! text-[11px] text-[#b8caff]!" : "h-6 text-[11px]"}>
+          <TonePill tone={tone} className="h-6 text-[11px]">
             {active ? "פעילה" : RIDE_STATUS_SHORT_HE[ride.status]}
-          </Pill>
+          </TonePill>
           <span className="truncate">{ride.rider?.name ?? ride.serviceType.nameHe}</span>
-          {ride.isDemo && <span className="text-amber-300">הדגמה</span>}
+          {ride.isDemo && <span className={cn("shrink-0 font-semibold", TEXT.warning)}>הדגמה</span>}
         </div>
       </div>
       <div className="shrink-0 text-end">
-        {ride.status === "completed" ? <div className="text-base font-extrabold tabular-nums">{formatILS(payoutOf(ride))}</div> : <div className="text-sm text-fg-muted">—</div>}
+        {ride.status === "completed" ? <div className="display text-base tabular-nums">{formatILS(payoutOf(ride))}</div> : <div className="text-sm text-fg-muted">—</div>}
       </div>
       <ChevronLeft size={18} className="shrink-0 text-fg-muted" aria-hidden />
     </Link>

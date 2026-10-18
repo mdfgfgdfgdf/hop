@@ -9,20 +9,22 @@ import { api, type TicketDTO } from "@/lib/api";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { TICKET_CATEGORY_HE, TICKET_STATUS_HE } from "@/lib/labels";
 import type { RideDTO } from "@/lib/types";
-import { Button, Field, Input, Pill, Select, Textarea, cn, useToast } from "@/components/ui";
+import { Button, Field, Input, Select, Textarea, cn, useToast } from "@/components/ui";
+import { TonePill } from "./TonePill";
 import { useDriverRuntime } from "./DriverRuntime";
 import { DriverPage } from "./DriverPage";
 import { NeedleLoader, StaggerItem, StaggerList } from "./motion";
 import { Notice } from "./Notice";
 import { errorMessage } from "./errors";
+import { CHIP, FILL } from "./tone";
 
 type Category = "safety" | "incident" | "payment" | "other";
 
 const QUICK: { id: Category; title: string; text: string; icon: typeof ShieldAlert; subject: string; tone: string }[] = [
-  { id: "safety", title: "דיווח על אירוע בטיחותי", text: "התנהגות מאיימת, חשש לבטיחות", icon: ShieldAlert, subject: "דיווח על אירוע בטיחותי", tone: "text-[#ff8a8d] bg-danger/15" },
-  { id: "incident", title: "תאונה / אירוע בנסיעה", text: "תאונה, נזק לרכב, אירוע חריג", icon: Siren, subject: "תאונה / אירוע בנסיעה", tone: "text-warning bg-warning/15" },
-  { id: "payment", title: "תשלום", text: "סכום, מזומן, עמלה", icon: Wallet, subject: "שאלה על תשלום", tone: "text-[#8fb0ff] bg-brand/15" },
-  { id: "other", title: "אחר", text: "כל דבר אחר", icon: MessageCircle, subject: "", tone: "text-fg bg-[color-mix(in_oklab,var(--fg)_10%,transparent)]" },
+  { id: "safety", title: "דיווח על אירוע בטיחותי", text: "התנהגות מאיימת, חשש לבטיחות", icon: ShieldAlert, subject: "דיווח על אירוע בטיחותי", tone: CHIP.danger },
+  { id: "incident", title: "תאונה / אירוע בנסיעה", text: "תאונה, נזק לרכב, אירוע חריג", icon: Siren, subject: "תאונה / אירוע בנסיעה", tone: CHIP.warning },
+  { id: "payment", title: "תשלום", text: "סכום, מזומן, עמלה", icon: Wallet, subject: "שאלה על תשלום", tone: CHIP.brand },
+  { id: "other", title: "אחר", text: "כל דבר אחר", icon: MessageCircle, subject: "", tone: CHIP.neutral },
 ];
 
 const STATUS_TONE: Record<TicketDTO["status"], "brand" | "warning" | "success" | "muted"> = { open: "brand", in_progress: "warning", resolved: "success", closed: "muted" };
@@ -55,18 +57,18 @@ export function SupportView() {
   return (
     <DriverPage title="תמיכה ובטיחות" subtitle="צוות HOP זמין לכל בעיה בדרך">
       <div className="grid gap-5">
-        <div className="relative overflow-hidden rounded-[26px] border border-danger/35 bg-danger/10 p-4">
+        <div className="relative overflow-hidden rounded-[26px] bg-[color-mix(in_oklab,var(--danger)_6%,var(--surface))] p-4 shadow-[0_14px_30px_-24px_rgba(229,72,77,0.6)] ring-1 ring-danger/25 sm:p-5">
           <div className="flex items-start gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-danger/20 text-[#ff8a8d]">
+            <span className={cn("grid h-11 w-11 shrink-0 place-items-center rounded-2xl", CHIP.danger)}>
               <Phone size={20} aria-hidden />
             </span>
             <div className="min-w-0 flex-1">
               <div className="font-extrabold">במצב חירום — קודם כל מתקשרים</div>
-              <p className="text-sm text-fg-muted">בסכנה מיידית חייגו לגורמי החירום, ורק אחר כך דווחו לנו.</p>
+              <p className="mt-0.5 text-sm text-fg-muted">בסכנה מיידית חייגו לגורמי החירום, ורק אחר כך דווחו לנו.</p>
             </div>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <a href="tel:100" className="btn btn-danger h-14 text-base">
+            <a href="tel:100" className={cn("btn btn-danger h-14 text-base", FILL.danger)}>
               משטרה · <span className="ltr-nums">100</span>
             </a>
             <a href="tel:101" className="btn btn-glass h-14 text-base">
@@ -92,7 +94,7 @@ export function SupportView() {
                       <button
                         type="button"
                         onClick={() => setCategory(q.id)}
-                        className="card flex h-full min-h-32 w-full flex-col items-start gap-2 p-4 text-start transition-transform active:scale-[0.98]"
+                        className="card flex h-full min-h-32 w-full flex-col items-start gap-2 p-4 text-start transition-[transform,box-shadow] hover:shadow-[0_1px_2px_rgba(17,19,24,0.04),0_18px_36px_-24px_rgba(17,19,24,0.45)] active:scale-[0.98]"
                         data-testid={`quick-${q.id}`}
                       >
                         <span className={cn("grid h-11 w-11 place-items-center rounded-2xl", q.tone)}>
@@ -124,7 +126,7 @@ export function SupportView() {
             </div>
           ) : tickets && tickets.length === 0 ? (
             <div className="card flex flex-col items-center px-6 py-10 text-center">
-              <span className="mb-3 grid h-14 w-14 place-items-center rounded-3xl bg-brand/15 text-[#8fb0ff]">
+              <span className={cn("mb-3 grid h-14 w-14 place-items-center rounded-3xl", CHIP.brand)}>
                 <MessagesSquare size={26} aria-hidden />
               </span>
               <div className="display text-lg">שקט כאן. וזה סימן טוב.</div>
@@ -134,13 +136,13 @@ export function SupportView() {
             <StaggerList className="card divide-y divide-line overflow-hidden p-0">
               {(tickets ?? []).map((t) => (
                 <StaggerItem key={t.id}>
-                  <Link href={`/drive/support/${t.id}`} className="flex min-h-[72px] items-center gap-3 px-4 py-3 hover:bg-[color-mix(in_oklab,var(--fg)_4%,transparent)]" data-testid="ticket-row">
+                  <Link href={`/drive/support/${t.id}`} className="flex min-h-[72px] items-center gap-3 px-4 py-3 transition-colors hover:bg-bg" data-testid="ticket-row">
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-bold">{t.subject}</div>
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-fg-muted">
-                        <Pill tone={STATUS_TONE[t.status]} className={cn("h-6 text-[11px]", t.status === "open" && "bg-brand/20! text-[#b8caff]!")}>
+                        <TonePill tone={STATUS_TONE[t.status]} className="h-6 text-[11px]">
                           {TICKET_STATUS_HE[t.status]}
-                        </Pill>
+                        </TonePill>
                         <span>{TICKET_CATEGORY_HE[t.category]}</span>
                         <span>· עודכן {formatRelative(t.updatedAt)}</span>
                       </div>
@@ -215,14 +217,14 @@ function NewTicketForm({ category, initialRideId, onCancel, onCreated, onCategor
                   onCategory(x.id);
                   if (!subject.trim() || QUICK.some((y) => y.subject === subject)) setSubject(x.subject);
                 }}
-                className="min-h-8 rounded-full border border-line px-2.5 text-[11px] font-bold text-fg-muted hover:text-fg"
+                className="min-h-11 rounded-full bg-bg px-3 text-[11px] font-bold text-fg-muted ring-1 ring-line transition-colors hover:text-fg"
               >
                 {x.title}
               </button>
             ))}
           </div>
         </div>
-        <button type="button" onClick={onCancel} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-fg-muted hover:text-fg" aria-label="ביטול פנייה">
+        <button type="button" onClick={onCancel} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-bg text-fg-muted transition-colors hover:text-fg" aria-label="ביטול פנייה">
           <X size={20} aria-hidden />
         </button>
       </div>

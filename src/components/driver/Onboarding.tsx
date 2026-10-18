@@ -17,6 +17,7 @@ import { Notice } from "./Notice";
 import { errorMessage } from "./errors";
 import { firstName } from "./copy";
 import { NeedleLoader } from "./motion";
+import { CHIP, TEXT } from "./tone";
 
 type ProfileData = { profile: DriverProfileDTO; documents: DriverDocumentDTO[]; requiredDocuments: string[] };
 type Step = 1 | 2 | 3;
@@ -91,7 +92,7 @@ export function Onboarding() {
   return (
     <DriverPage
       title="הצטרפות לנהגי HOP"
-      subtitle={profile ? (approved ? "החשבון מאושר" : "שלושה צעדים קצרים ואתם על הכביש") : undefined}
+      subtitle={profile ? (approved ? "החשבון מאושר" : "שלושה צעדים ואתם על הכביש") : undefined}
       back={approved ? "/drive" : null}
       wide
       actions={
@@ -106,7 +107,7 @@ export function Onboarding() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <h2 className="display text-[1.9rem] leading-tight">
               {user ? `ברוכים הבאים, ${firstName(user.name)}` : "ברוכים הבאים"}
-              <span className="text-[#8fb0ff]">.</span>
+              <span className="text-brand">.</span>
             </h2>
             <p className="mt-1 text-sm text-fg-muted">ממלאים פרטי רכב, מעלים מסמכים — וצוות HOP בודק ומאשר. רק אז אפשר לקבל נסיעות.</p>
           </motion.div>
@@ -125,16 +126,16 @@ export function Onboarding() {
                       disabled={!data}
                       aria-current={active ? "step" : undefined}
                       className={cn(
-                        "relative flex min-h-14 w-full items-center gap-2 overflow-hidden rounded-2xl border px-2.5 text-start text-sm font-bold transition-colors sm:px-3",
-                        active ? "border-brand bg-brand/15 text-fg" : "border-line bg-[color-mix(in_oklab,var(--fg)_4%,transparent)] text-fg-muted hover:text-fg",
+                        "relative flex min-h-14 w-full items-center gap-2 overflow-hidden rounded-2xl px-2.5 text-start text-sm font-bold transition-[background-color,box-shadow,color] sm:px-3",
+                        active ? "bg-surface text-fg shadow-[0_10px_24px_-16px_rgba(36,87,255,0.8)] ring-2 ring-brand" : "bg-surface/60 text-fg-muted ring-1 ring-line hover:bg-surface hover:text-fg",
                       )}
                       data-testid={`step-${n}`}
                     >
-                      <span className={cn("grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-extrabold", done ? "bg-success text-white" : active ? "bg-brand text-white" : "bg-[color-mix(in_oklab,var(--fg)_12%,transparent)]")}>
+                      <span className={cn("grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-extrabold", done ? "bg-success text-white" : active ? "bg-brand text-white" : "bg-[color-mix(in_oklab,var(--fg)_8%,transparent)] text-fg")}>
                         {done ? <Check size={15} strokeWidth={3} aria-hidden /> : n}
                       </span>
                       <span className="truncate">{label}</span>
-                      {active && <motion.span layoutId="onb-step" className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-brand" />}
+
                     </button>
                   </li>
                 );
@@ -179,7 +180,7 @@ export function Onboarding() {
                   <Section title="מסמכים" description="צלמו או העלו כל מסמך. ברגע שכל המסמכים יתקבלו — הבקשה עוברת אוטומטית לבדיקה.">
                     <DocumentsList documents={data.documents} requiredDocuments={data.requiredDocuments} verificationStatus={profile.verificationStatus} onUploaded={() => void load()} />
                     <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                      <Button variant="ghost" onClick={() => setStep(1)}>
+                      <Button variant="glass" onClick={() => setStep(1)}>
                         חזרה לפרטי הרכב
                       </Button>
                       <Button size="lg" onClick={() => setStep(3)} data-testid="docs-continue">
@@ -192,11 +193,6 @@ export function Onboarding() {
                 {step === 3 && profile && (
                   <div className="grid gap-4">
                     <VerificationCard profile={profile} missing={missing} onFix={() => setStep(missing.length || profile.verificationStatus !== "rejected" ? 2 : 1)} />
-                    {approved && (
-                      <Link href="/drive" className="btn btn-primary btn-lg btn-block lg:hidden">
-                        התחלת נהיגה
-                      </Link>
-                    )}
                   </div>
                 )}
               </motion.div>
@@ -205,29 +201,32 @@ export function Onboarding() {
         </div>
 
         <aside className="grid gap-3 lg:sticky lg:top-24">
-          <div className="glass glass-md p-5">
-            <h2 className="flex items-center gap-2 text-base font-extrabold">
-              <ShieldCheck size={20} className="text-[#8fb0ff]" aria-hidden /> חשוב לדעת לפני שמתחילים
+          <div className="glass glass-strong glass-md p-5">
+            <h2 className="flex items-center gap-2.5 text-base font-extrabold">
+              <span className={cn("grid h-9 w-9 place-items-center rounded-xl", CHIP.brand)}>
+                <ShieldCheck size={19} aria-hidden />
+              </span>
+              חשוב לדעת לפני שמתחילים
             </h2>
             <ul className="mt-3 grid gap-3 text-sm">
               <li className="flex gap-3">
-                <BadgeCheck size={18} className="mt-0.5 shrink-0 text-[#8fb0ff]" aria-hidden />
+                <BadgeCheck size={18} className="mt-0.5 shrink-0 text-brand" aria-hidden />
                 <span>
                   <b>נדרש רישיון להסעת נוסעים בשכר</b> — רישיון מונית או היתר של משרד התחבורה.
                 </span>
               </li>
               <li className="flex gap-3">
-                <Ban size={18} className="mt-0.5 shrink-0 text-[#ff8a8d]" aria-hidden />
+                <Ban size={18} className={cn("mt-0.5 shrink-0", TEXT.danger)} aria-hidden />
                 <span>
                   <b>אין נסיעות ברכב פרטי.</b> HOP מפעילה רק שירותים מורשים.
                 </span>
               </li>
               <li className="flex gap-3">
-                <FileCheck2 size={18} className="mt-0.5 shrink-0 text-[#8fb0ff]" aria-hidden />
+                <FileCheck2 size={18} className="mt-0.5 shrink-0 text-brand" aria-hidden />
                 <span>ביטוח חובה וצד ג&apos; שמכסה הסעת נוסעים, ורישיון רכב בתוקף.</span>
               </li>
               <li className="flex gap-3">
-                <Check size={18} className="mt-0.5 shrink-0 text-success" aria-hidden />
+                <Check size={18} className={cn("mt-0.5 shrink-0", TEXT.success)} aria-hidden />
                 <span>
                   <b>ניתן לקבל נסיעות רק לאחר אישור</b> החשבון והמסמכים על ידי צוות HOP.
                 </span>

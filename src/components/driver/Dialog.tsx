@@ -54,7 +54,7 @@ export function Dialog({ open, onClose, title, description, children, className,
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
         >
-          <button type="button" aria-label="סגירה" tabIndex={-1} className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-[2px]" onClick={() => dismissible && onClose()} />
+          <button type="button" aria-label="סגירה" tabIndex={-1} className="absolute inset-0 cursor-default bg-ink/35 backdrop-blur-[3px]" onClick={() => dismissible && onClose()} />
           <motion.div
             ref={panelRef}
             role={role}
@@ -65,14 +65,14 @@ export function Dialog({ open, onClose, title, description, children, className,
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 20, opacity: 0 }}
             transition={{ type: "spring", stiffness: 420, damping: 36 }}
-            className={cn("glass glass-strong relative max-h-[calc(100dvh-1rem)] w-full max-w-md overflow-y-auto p-5 safe-bottom sm:pb-5", className)}
+            className={cn("glass glass-strong relative max-h-[calc(100dvh-1rem)] w-full max-w-md overflow-y-auto rounded-[30px] p-5 safe-bottom sm:pb-5", className)}
           >
             <div className="flex items-start justify-between gap-3">
-              <h2 id={titleId} className="display text-xl">
+              <h2 id={titleId} className="display pt-1.5 text-[1.35rem] leading-tight">
                 {title}
               </h2>
               {dismissible && (
-                <button type="button" onClick={onClose} className="-me-2 -mt-1 grid h-11 w-11 shrink-0 place-items-center rounded-full text-fg-muted hover:text-fg" aria-label="סגירה">
+                <button type="button" onClick={onClose} className="-me-1 -mt-1 grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[color-mix(in_oklab,var(--fg)_6%,transparent)] text-fg-muted transition-colors hover:text-fg" aria-label="סגירה">
                   <X size={20} aria-hidden />
                 </button>
               )}
