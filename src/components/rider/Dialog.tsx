@@ -54,7 +54,7 @@ export function Dialog({
       {open && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center p-2 sm:items-center sm:p-6" data-theme="light">
           <motion.div
-            className="absolute inset-0 bg-ink/45 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-[rgba(17,19,24,.34)] backdrop-blur-[3px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -73,7 +73,7 @@ export function Dialog({
             className="glass glass-strong relative w-full max-w-md p-5 text-fg safe-bottom"
           >
             <div className="mb-4 flex items-start gap-3">
-              {icon && <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-100 text-brand">{icon}</div>}
+              {icon && <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand-100 text-brand shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--brand)_18%,transparent)]">{icon}</div>}
               <div className="min-w-0 flex-1">
                 <h2 id={titleId} className="text-lg font-extrabold leading-snug">
                   {title}

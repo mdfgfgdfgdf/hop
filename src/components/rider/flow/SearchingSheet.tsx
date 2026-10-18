@@ -6,8 +6,8 @@ import { formatILS } from "@/lib/format";
 import { PAYMENT_METHOD_HE } from "@/lib/labels";
 import type { RideDTO } from "@/lib/types";
 import { Button } from "@/components/ui";
-import { formatClock, useNow } from "../lib/hooks";
-import { NeedleGauge } from "../motion";
+import { formatClock, useIsDesktop, useNow } from "../lib/hooks";
+import { SearchGauge } from "../motion";
 import { RouteSummary } from "../RouteSummary";
 import { CancelRideDialog } from "./CancelRideDialog";
 import { SheetFooter } from "./SheetLayout";
@@ -28,42 +28,55 @@ export function SearchingSheet({ ride, onCancelled }: { ride: RideDTO; onCancell
   const offered = ride.status === "offered";
   const PayIcon = ride.paymentMethod === "cash" ? Banknote : CreditCard;
   const copy = searchingCopy(ride.status, elapsed);
+  // Phone: gauge beside the copy so the pickup halo stays visible above the sheet.
+  // Desktop side panel: the gauge is the centred hero of the moment.
+  const isDesktop = useIsDesktop();
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <NeedleGauge size={40} label="מחפשים נהג" className="mt-0.5 shrink-0" />
+      <div className="flex items-center gap-4 lg:flex-col lg:gap-1 lg:pt-6 lg:text-center">
+        <SearchGauge found={offered} size={isDesktop ? 168 : 88} label={offered ? "נמצא נהג קרוב" : "מחפשים נהג"} />
+        <div className="min-w-0 flex-1 lg:flex lg:flex-col lg:items-center">
           <div role="status" aria-live="polite" className="min-w-0">
             <AnimatePresence mode="wait" initial={false}>
-              <motion.h2 key={copy.title} className="display text-[26px]" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.28 }}>
+              <motion.h2 key={copy.title} className="display text-[26px] lg:text-[30px]" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.28 }}>
                 {copy.title}
               </motion.h2>
             </AnimatePresence>
             <AnimatePresence mode="wait" initial={false}>
-              <motion.p key={copy.line} className="mt-1 text-sm text-fg-muted" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.25 }}>
+              <motion.p key={copy.line} className="mt-0.5 text-sm text-fg-muted" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.25 }}>
                 {copy.line}
               </motion.p>
             </AnimatePresence>
           </div>
+          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 lg:mt-3 lg:justify-center">
+            <span className="pill pill-brand tabular-nums" aria-label={`זמן חיפוש ${formatClock(elapsed)}`}>
+              <span className="relative flex h-2 w-2" aria-hidden>
+                {!offered && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand/60" />}
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
+              </span>
+              <span className="ltr-nums">{formatClock(elapsed)}</span>
+            </span>
+            {/* phone: the ride summary line lives here so the sheet stays short */}
+            <span className="truncate text-xs font-semibold text-fg-muted lg:hidden">
+              {ride.serviceType.nameHe} · {PAYMENT_METHOD_HE[ride.paymentMethod]} · <span className="ltr-nums text-fg">{formatILS(ride.quotedTotalAgorot)}</span>
+            </span>
+          </div>
         </div>
-        <span className="pill pill-brand shrink-0 tabular-nums" aria-label={`זמן חיפוש ${formatClock(elapsed)}`}>
-          <span className="ltr-nums">{formatClock(elapsed)}</span>
-        </span>
       </div>
 
-      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-brand-100" aria-hidden>
+      <div className="mt-6 hidden h-1 overflow-hidden rounded-full bg-brand-100 lg:block" aria-hidden>
         <motion.div
-          className="h-full w-1/3 rounded-full bg-brand"
+          className={offered ? "h-full w-1/3 rounded-full bg-brand" : "h-full w-1/3 rounded-full bg-[linear-gradient(90deg,transparent,var(--brand),transparent)]"}
           animate={offered ? { x: "0%", width: "100%" } : { x: ["150%", "-300%"] }}
           transition={offered ? { duration: 0.6 } : { duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
 
-      <div className="mt-4 rounded-[22px] border border-line bg-surface/70 px-3 py-2">
+      <div className="tile mt-4 rounded-[22px] px-3 py-1.5 lg:py-2">
         <RouteSummary compact pickup={{ address: ride.pickup.address }} dropoff={{ address: ride.dropoff.address }} />
-        <div className="divider my-1.5" />
-        <div className="flex items-center justify-between gap-3 py-1 text-sm">
+        <div className="divider my-1.5 hidden lg:block" />
+        <div className="hidden items-center justify-between gap-3 py-1 text-sm lg:flex">
           <span className="font-bold">{ride.serviceType.nameHe}</span>
           <span className="flex items-center gap-2 text-fg-muted">
             <PayIcon size={16} aria-hidden />

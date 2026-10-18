@@ -321,7 +321,7 @@ function TariffEditor({ active, services, readOnly, onSaved }: { active: Pricing
             <div
               className={cn(
                 "mt-4 flex items-start gap-3 rounded-2xl border p-4",
-                form.isDemo ? "border-[color-mix(in_oklab,var(--warning)_45%,transparent)] bg-[color-mix(in_oklab,var(--warning)_8%,var(--surface))]" : "border-[color-mix(in_oklab,var(--danger)_35%,transparent)] bg-[color-mix(in_oklab,var(--danger)_6%,var(--surface))]",
+                form.isDemo ? "border-[color-mix(in_oklab,var(--brand)_22%,transparent)] bg-brand-50" : "border-[color-mix(in_oklab,var(--danger)_35%,transparent)] bg-[color-mix(in_oklab,var(--danger)_6%,var(--surface))]",
               )}
             >
               <Toggle checked={form.isDemo} onChange={set("isDemo")} disabled={ro} label="תעריף הדגמה" />

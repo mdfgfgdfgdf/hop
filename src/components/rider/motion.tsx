@@ -5,6 +5,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, useReducedMotion, type Variants } from "motion/react";
+import { AnimatedMark } from "@/components/brand/AnimatedLogo";
 import { Button, type ButtonProps } from "@/components/ui/Button";
 import { cn } from "@/components/ui/cn";
 
@@ -58,26 +59,133 @@ export function NeedleGauge({ size = 36, label = "טוען…", className, tone 
   );
 }
 
-/** Searching halo for the pickup: ring-pulse + a slowly orbiting needle arc. */
-export function NeedleOrbit({ size = 132 }: { size?: number }) {
+/**
+ * Searching halo around the pickup on the map: a gauge dial whose needle
+ * revs back and forth like the logo's (same rhythm as the searching mark),
+ * over a soft pulse.
+ */
+export function NeedleOrbit({ size = 136 }: { size?: number }) {
   const reduce = useReducedMotion();
-  const r = 56;
-  const c = 2 * Math.PI * r;
-  const tip = (-90 + 57.6) * (Math.PI / 180);
+  const c = size / 2;
+  const r = size * 0.44;
+  const ticks = Array.from({ length: 36 }, (_, i) => i * 10);
   return (
     <div className="relative grid place-items-center" style={{ width: size, height: size }} aria-hidden>
       <div className="ring-pulse absolute inset-[30%] rounded-full bg-brand/15" />
-      <svg viewBox="0 0 132 132" width={size} height={size} className="absolute inset-0">
-        <circle cx="66" cy="66" r={r} fill="none" stroke="color-mix(in oklab, var(--brand) 22%, transparent)" strokeWidth="2" strokeDasharray="2 7" strokeLinecap="round" />
+      <div className="absolute inset-[8%] rounded-full bg-[radial-gradient(closest-side,rgba(36,87,255,.14),rgba(36,87,255,.04)_70%,transparent)]" />
+      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="absolute inset-0">
+        {ticks.map((a) => {
+          const rad = (a * Math.PI) / 180;
+          const major = a % 30 === 0;
+          const r1 = r - (major ? 7 : 4);
+          return (
+            <line
+              key={a}
+              x1={c + r1 * Math.cos(rad)}
+              y1={c + r1 * Math.sin(rad)}
+              x2={c + r * Math.cos(rad)}
+              y2={c + r * Math.sin(rad)}
+              stroke={major ? "color-mix(in oklab, var(--brand) 55%, transparent)" : "color-mix(in oklab, var(--brand) 25%, transparent)"}
+              strokeWidth={major ? 2.2 : 1.4}
+              strokeLinecap="round"
+            />
+          );
+        })}
       </svg>
-      <motion.div className="absolute inset-0" animate={reduce ? undefined : { rotate: 360 }} transition={{ duration: 5.5, repeat: Infinity, ease: "linear" }}>
-        <svg viewBox="0 0 132 132" width={size} height={size}>
-          <circle cx="66" cy="66" r={r} fill="none" stroke="var(--brand)" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${c * 0.16} ${c}`} transform="rotate(-90 66 66)" />
-          <circle cx={66 + r * Math.cos(tip)} cy={66 + r * Math.sin(tip)} r="4.5" fill="#fff" stroke="var(--brand)" strokeWidth="2.5" />
+      <motion.div
+        className="absolute inset-0"
+        initial={{ rotate: -205 }}
+        animate={reduce ? { rotate: -55 } : { rotate: [-205, -35, -205] }}
+        transition={reduce ? { duration: 0 } : { duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
+          <line x1={c + 14} y1={c} x2={c + r - 9} y2={c} stroke="var(--brand)" strokeWidth="4" strokeLinecap="round" />
+          <circle cx={c + r - 3} cy={c} r="5" fill="#fff" stroke="var(--brand)" strokeWidth="3" />
         </svg>
       </motion.div>
       <div className="relative z-[1] grid h-7 w-7 place-items-center rounded-full border-[3px] border-white bg-brand shadow-[0_8px_20px_-6px_rgba(36,87,255,.8)]">
         <div className="h-2 w-2 rounded-full bg-white" />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The hero of the "searching for a driver" moment: the HOP app mark revving
+ * its needle inside a gauge dial, with a bead on the dial that follows the
+ * needle and rounded-square pulses echoing the icon. When a driver is found
+ * the needle snaps forward and the bead settles at "full".
+ */
+export function SearchGauge({ found = false, size = 128, label = "מחפשים נהג" }: { found?: boolean; size?: number; label?: string }) {
+  const reduce = useReducedMotion();
+  const c = size / 2;
+  const r = size * 0.45;
+  const circ = 2 * Math.PI * r;
+  const sweep = 250; // dial degrees, from 145° (lower-left) clockwise to 35° (upper-right)
+  const ticks = Array.from({ length: 21 }, (_, i) => 145 + (sweep / 20) * i);
+  // The mark's needle points at -55° at rest and sweeps by [-150°, +20°].
+  const needle = { min: -205, max: -35, found: -37 };
+  return (
+    <div role="img" aria-label={label} className="relative grid shrink-0 place-items-center" style={{ width: size, height: size }}>
+      <div className={cn("absolute rounded-[26%] bg-brand/10", !found && "ring-pulse")} style={{ inset: size * 0.2 }} aria-hidden />
+      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="absolute inset-0" aria-hidden>
+        <circle
+          cx={c}
+          cy={c}
+          r={r}
+          fill="none"
+          stroke="color-mix(in oklab, var(--brand) 16%, transparent)"
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeDasharray={`${(circ * sweep) / 360} ${circ}`}
+          transform={`rotate(145 ${c} ${c})`}
+        />
+        <motion.circle
+          cx={c}
+          cy={c}
+          r={r}
+          fill="none"
+          stroke="var(--brand)"
+          strokeWidth={3}
+          strokeLinecap="round"
+          transform={`rotate(145 ${c} ${c})`}
+          initial={false}
+          animate={{ strokeDasharray: `${found ? (circ * sweep) / 360 : 0} ${circ}` }}
+          transition={{ duration: 0.7, ease: [0.2, 0.9, 0.2, 1] }}
+        />
+        {ticks.map((a, i) => {
+          const rad = (a * Math.PI) / 180;
+          const r1 = r - (i % 5 === 0 ? 11 : 8);
+          const r2 = r - 5;
+          return (
+            <line
+              key={a}
+              x1={c + r1 * Math.cos(rad)}
+              y1={c + r1 * Math.sin(rad)}
+              x2={c + r2 * Math.cos(rad)}
+              y2={c + r2 * Math.sin(rad)}
+              stroke={i % 5 === 0 ? "color-mix(in oklab, var(--brand) 55%, transparent)" : "color-mix(in oklab, var(--fg) 18%, transparent)"}
+              strokeWidth={i % 5 === 0 ? 2.2 : 1.5}
+              strokeLinecap="round"
+            />
+          );
+        })}
+      </svg>
+      {/* bead riding the dial with the needle */}
+      <motion.div
+        className="absolute inset-0"
+        initial={{ rotate: needle.min }}
+        animate={found || reduce ? { rotate: found ? needle.found : -55 } : { rotate: [needle.min, needle.max, needle.min] }}
+        transition={found || reduce ? { type: "spring", stiffness: 260, damping: 18 } : { duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        aria-hidden
+      >
+        <span
+          className="absolute grid h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white shadow-[0_0_0_3px_var(--brand),0_4px_14px_rgba(36,87,255,.55)]"
+          style={{ left: c + r, top: c }}
+        />
+      </motion.div>
+      <div className="relative drop-shadow-[0_14px_22px_rgba(36,87,255,.38)]">
+        <AnimatedMark size={size * 0.56} mode={found ? "success" : "loading"} hopOn="none" title="" />
       </div>
     </div>
   );

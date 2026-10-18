@@ -100,7 +100,7 @@ export function ActiveSheet({ ride, driverPos, onCancelled }: { ride: RideDTO; d
             layout
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="shrink-0 rounded-2xl bg-brand px-3 py-2 text-center text-white shadow-[0_12px_24px_-12px_rgba(36,87,255,.8)]"
+            className="chip-brand shrink-0 rounded-2xl px-3 py-2 text-center"
             data-testid="eta"
           >
             <div className="text-xl leading-none font-extrabold tabular-nums">~{formatEta(etaS)}</div>
@@ -110,19 +110,19 @@ export function ActiveSheet({ ride, driverPos, onCancelled }: { ride: RideDTO; d
       </div>
 
       {ride.driver && (
-        <div className="mt-4 rounded-[22px] border border-line bg-surface/80 p-3">
+        <div className="tile mt-4 rounded-[22px] p-3">
           <DriverCard driver={ride.driver} />
         </div>
       )}
 
       {inProgress ? (
-        <div className="mt-3 rounded-[22px] border border-line bg-surface/70 p-3">
+        <div className="tile mt-3 rounded-[22px] p-3">
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-success/15 text-success">
               <Lock size={18} aria-hidden />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-bold text-success">המחיר נעול — בלי הפתעות</div>
+              <div className="text-xs font-bold text-[color-mix(in_oklab,var(--success)_78%,var(--fg))]">המחיר נעול — בלי הפתעות</div>
               <div className="display text-2xl ltr-nums" data-testid="locked-price">{formatILS(ride.quotedTotalAgorot)}</div>
             </div>
             {arrivalClock && (
@@ -139,7 +139,7 @@ export function ActiveSheet({ ride, driverPos, onCancelled }: { ride: RideDTO; d
           </div>
         </div>
       ) : (
-        <div className="mt-3 rounded-[22px] border border-line bg-surface/70 px-3 py-2 [@media(max-height:720px)]:hidden">
+        <div className="tile mt-3 rounded-[22px] px-3 py-2 [@media(max-height:720px)]:hidden">
           <RouteSummary compact pickup={{ address: ride.pickup.address }} dropoff={{ address: ride.dropoff.address }} />
           <div className="divider my-1.5" />
           <div className="flex items-center justify-between gap-3 py-1 text-sm">
@@ -178,7 +178,7 @@ function ActionTile({ icon, label, onClick, tone, testId }: { icon: React.ReactN
       onClick={onClick}
       data-testid={testId}
       className={cn(
-        "flex min-h-12 items-center justify-center gap-2 rounded-full border border-line bg-surface/70 px-3 text-[13px] font-bold transition-colors hover:bg-surface active:scale-[.97]",
+        "btn btn-glass h-12 gap-2 px-3 text-[13px]",
         tone === "danger" && "text-danger",
         tone === "brand" && "text-brand",
       )}

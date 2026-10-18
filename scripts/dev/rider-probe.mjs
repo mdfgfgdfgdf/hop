@@ -2,7 +2,7 @@
 import { chromium } from "@playwright/test";
 import fs from "node:fs";
 const BASE = "http://localhost:3001";
-const STATE = "/tmp/claude-0/-home-user-hop/71bf8acf-8656-5cac-8fb7-200922f65bdb/scratchpad/rider/.rider-session.json";
+const STATE = "/tmp/claude-0/-home-user-hop/71bf8acf-8656-5cac-8fb7-200922f65bdb/scratchpad/rider-v2/final/.rider-session.json";
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3, locale: "he-IL", timezoneId: "Asia/Jerusalem", storageState: fs.existsSync(STATE) ? STATE : undefined, permissions: ["geolocation"], geolocation: { latitude: 32.0685, longitude: 34.7683 } });
 const page = await ctx.newPage();

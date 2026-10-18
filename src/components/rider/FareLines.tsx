@@ -27,7 +27,7 @@ export function FareLines({ fare, total, className, showSplit = true }: { fare: 
         <span className="font-extrabold ltr-nums">{formatILS(sum)}</span>
       </div>
       {showSplit && (
-        <p className="mt-2 rounded-xl bg-[color-mix(in_oklab,var(--fg)_5%,transparent)] px-3 py-2 text-xs text-fg-muted">
+        <p className="well mt-2 rounded-xl px-3 py-2 text-xs text-fg-muted">
           מתוך הסכום: הנהג מקבל <b className="text-fg ltr-nums">{formatILS(fare.driverPayoutAgorot)}</b> · עמלת HOP{" "}
           <b className="text-fg ltr-nums">{formatILS(fare.hopCommissionAgorot)}</b>
         </p>

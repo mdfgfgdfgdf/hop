@@ -1,14 +1,14 @@
 /**
  * Screenshots every admin screen as admin and as support at desktop / iPad / iPhone.
  *   PW_CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/dev/admin-shots.mjs [--only=overview,drivers] [--roles=admin,support] [--sizes=desktop,ipad,iphone]
- * Env: BASE_URL (default http://localhost:3003), OUT_DIR.
+ * Env: BASE_URL (default http://localhost:3001), OUT_DIR.
  */
 import { chromium, devices } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 
 // Use "localhost": Next 16 dev blocks /_next dev resources for the 127.0.0.1 origin (no hydration).
-const BASE = process.env.BASE_URL ?? "http://localhost:3003";
-const OUT = process.env.OUT_DIR ?? "/tmp/claude-0/-home-user-hop/71bf8acf-8656-5cac-8fb7-200922f65bdb/scratchpad/admin";
+const BASE = process.env.BASE_URL ?? "http://localhost:3001";
+const OUT = process.env.OUT_DIR ?? "/tmp/claude-0/-home-user-hop/71bf8acf-8656-5cac-8fb7-200922f65bdb/scratchpad/rider-v2/admin";
 const arg = (name) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split("=")[1]?.split(",").filter(Boolean);
 const only = arg("only");
 const roles = arg("roles") ?? ["admin", "support"];

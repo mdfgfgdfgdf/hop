@@ -10,6 +10,7 @@ import type { Map as MLMap } from "maplibre-gl";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, LocateFixed } from "lucide-react";
 import { RiderMap, type MapMarker } from "../RiderMap";
+import { AnimatedMark, type LogoMode } from "@/components/brand/AnimatedLogo";
 import { DemoBanner, Sheet, Skeleton, useToast } from "@/components/ui";
 import { formatILS } from "@/lib/format";
 import type { LatLng, PlaceDTO, Polyline, RideDTO } from "@/lib/types";
@@ -69,6 +70,7 @@ export function RideApp() {
   const [dropoff, setDropoff] = useState<SelectedPlace | null>(null);
   const [pinCenter, setPinCenter] = useState<LatLng | null>(null);
   const [moving, setMoving] = useState(false);
+  const [ordering, setOrdering] = useState(false);
   const [sheetEl, setSheetEl] = useState<HTMLElement | null>(null);
   const sheetH = useElementHeight(sheetEl);
   const sheetRef = useCallback((node: HTMLDivElement | null) => setSheetEl(node?.closest("section") ?? null), []);
@@ -271,7 +273,7 @@ export function RideApp() {
   };
 
   const topNote = (() => {
-    if (view === "searching") return "מחפשים לך נהג…";
+    if (view === "searching") return shownRide?.status === "offered" ? "מצאנו נהג קרוב · ממתינים לאישור" : "מחפשים לך נהג…";
     if (view === "active" && shownRide) {
       const first = driverFirstName(shownRide);
       if (shownRide.status === "in_progress") return "בנסיעה · המחיר נעול";
@@ -282,6 +284,34 @@ export function RideApp() {
     if (view === "cancelled") return "אפשר לנסות שוב בכל רגע";
     return undefined;
   })();
+
+  if (ordering && view !== "quote") setOrdering(false); // the quote sheet went away mid-order
+
+  // The HOP mark in the floating bars lives with the journey.
+  const markMode: LogoMode =
+    view === "loading" || view === "searching"
+      ? "loading"
+      : view === "active"
+        ? "moving"
+        : view === "completed"
+          ? "success"
+          : view === "quote" && (quote.loading || ordering)
+            ? "loading"
+            : "idle";
+  const backLabel =
+    view === "pin"
+      ? pinTarget === "pickup"
+        ? "נקודת איסוף"
+        : "בחירת יעד"
+      : ordering
+        ? "שולחים את ההזמנה…"
+        : quote.refreshing
+          ? "מעדכנים מחיר…"
+          : quote.loading
+            ? "מחשבים מחיר…"
+            : quote.error && !quote.data
+              ? "לא הצלחנו לתמחר"
+              : "בחירת נסיעה";
 
   const showTopBar = view === "home" || view === "loading" || view === "searching" || view === "active" || view === "completed" || view === "cancelled";
   const showBack = view === "quote" || view === "pin";
@@ -317,13 +347,20 @@ export function RideApp() {
         </RiderMap>
       </div>
 
-      {showTopBar && <TopBar note={topNote} />}
+      {showTopBar && <TopBar note={topNote} mode={markMode} />}
       {showBack && (
-        <div className="pointer-events-none fixed inset-x-0 top-0 z-30 flex items-center justify-between px-3 pt-3 safe-top lg:absolute lg:start-[452px] lg:px-4 lg:pt-4">
-          <button type="button" onClick={back} className="btn btn-glass btn-icon pointer-events-auto h-12 w-12 shadow-lg" aria-label="חזרה" data-testid="map-back">
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-30 flex items-center gap-2 px-3 pt-3 safe-top lg:absolute lg:start-[452px] lg:end-0 lg:px-4 lg:pt-4">
+          <button type="button" onClick={back} className="btn btn-glass btn-icon pointer-events-auto h-12 w-12 shrink-0" aria-label="חזרה" data-testid="map-back">
             <ArrowRight size={22} aria-hidden />
           </button>
-          {demoMode && <DemoBanner compact text="הדגמה" className="pointer-events-auto" />}
+          <div className="glass glass-strong glass-pill pointer-events-auto flex h-12 min-w-0 items-center gap-2 ps-1.5 pe-4">
+            <AnimatedMark size={36} mode={markMode} hopOn="both" title="HOP" />
+            <span className="truncate text-sm font-bold" aria-live="polite">
+              {backLabel}
+            </span>
+          </div>
+          <span className="flex-1" />
+          {demoMode && <DemoBanner compact text="הדגמה" className="pointer-events-auto shrink-0" />}
         </div>
       )}
 
@@ -388,6 +425,7 @@ export function RideApp() {
                   onEditDropoff={() => setStage({ kind: "search" })}
                   onOrdered={onOrdered}
                   onRideActive={refresh}
+                  onOrderingChange={setOrdering}
                 />
               )}
               {view === "quote" && (!pickup || !dropoff) && <LoadingContent />}

@@ -1,7 +1,7 @@
 "use client";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowLeft, BadgeCheck, Clock, LocateFixed, ReceiptText, Search, Sparkles } from "lucide-react";
-import { Logo } from "@/components/brand/Logo";
+import { AnimatedLogo } from "@/components/brand/AnimatedLogo";
 import { Pill, Skeleton } from "@/components/ui";
 import type { RecentPlace } from "../lib/storage";
 import { StaggerItem, StaggerList } from "../motion";
@@ -36,7 +36,7 @@ export function HomeSheet({
         whileTap={reduce ? undefined : { scale: 0.98 }}
         whileHover={reduce ? undefined : { y: -1 }}
         transition={{ type: "spring", stiffness: 600, damping: 30 }}
-        className="group relative flex h-[60px] w-full items-center gap-3 overflow-hidden rounded-[20px] bg-[linear-gradient(180deg,#3566ff_0%,var(--brand)_55%,var(--brand-600)_100%)] ps-4 pe-3 text-start text-white shadow-[0_16px_34px_-14px_rgba(36,87,255,.75),inset_0_1px_0_rgba(255,255,255,.35)]"
+        className="btn-primary group relative isolate flex h-[60px] w-full items-center gap-3 overflow-hidden rounded-[22px] ps-4 pe-2.5 text-start"
         data-testid="destination-trigger"
       >
         {!reduce && (
@@ -51,7 +51,7 @@ export function HomeSheet({
         )}
         <Search size={22} aria-hidden />
         <span className="flex-1 text-[17px] font-bold">חיפוש יעד</span>
-        <span className="grid h-10 w-10 place-items-center rounded-full bg-white/15 transition-transform group-hover:-translate-x-0.5">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-white/18 shadow-[inset_0_1px_0_rgba(255,255,255,.35)] transition-transform group-hover:-translate-x-0.5">
           <ArrowLeft size={20} aria-hidden />
         </span>
       </motion.button>
@@ -59,7 +59,7 @@ export function HomeSheet({
       <button
         type="button"
         onClick={onEditPickup}
-        className="mt-3 flex min-h-14 w-full items-center gap-3 rounded-2xl border border-line bg-surface/70 px-3 py-2 text-start transition-colors hover:bg-surface"
+        className="tile tile-hover mt-3 flex min-h-14 w-full items-center gap-3 rounded-[20px] px-3 py-2 text-start"
         aria-label="שינוי נקודת האיסוף"
         data-testid="pickup-row"
       >
@@ -87,7 +87,7 @@ export function HomeSheet({
       <div className="mt-5">
         <div className="mb-1 px-1 text-xs font-bold text-fg-muted">יעדים אחרונים</div>
         {recents.length === 0 ? (
-          <div className="flex items-center gap-3 rounded-2xl border border-dashed border-line px-3 py-3">
+          <div className="flex items-center gap-3 rounded-[20px] border border-dashed border-[var(--line-strong)] px-3 py-3">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-50 text-brand">
               <Sparkles size={17} aria-hidden />
             </span>
@@ -104,7 +104,7 @@ export function HomeSheet({
                   onClick={() => onPickRecent(p)}
                   className="flex min-h-14 w-full items-center gap-3 rounded-2xl px-1 py-2 text-start transition-colors hover:bg-[color-mix(in_oklab,var(--fg)_5%,transparent)]"
                 >
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[color-mix(in_oklab,var(--fg)_7%,transparent)] text-fg-muted">
+                  <span className="well grid h-9 w-9 shrink-0 place-items-center rounded-full text-fg-muted">
                     <Clock size={17} aria-hidden />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -119,9 +119,9 @@ export function HomeSheet({
         )}
       </div>
       <div className="mt-auto hidden pt-8 lg:block">
-        <div className="rounded-[24px] border border-line bg-surface/60 p-4">
+        <div className="tile rounded-[24px] p-4">
           <div className="mb-3 flex items-center justify-between">
-            <Logo height={20} />
+            <AnimatedLogo height={22} hopOn="hover" title="HOP" />
             <span className="text-xs font-bold text-fg-muted">העיר שלך. הופ אחד.</span>
           </div>
           <ul className="space-y-2.5 text-sm">

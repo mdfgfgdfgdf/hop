@@ -98,7 +98,7 @@ export function SupportView() {
           )}
         </AnimatePresence>
 
-        {error && !tickets && <InlineError error={error} action={<Button size="sm" variant="ink" onClick={load}>ניסיון חוזר</Button>} />}
+        {error && !tickets && <InlineError error={error} action={<Button size="sm" variant="glass" onClick={load}>ניסיון חוזר</Button>} />}
         {!tickets && !error && (
           <div className="space-y-2" aria-busy="true" aria-label="טוען פניות">
             {[0, 1].map((i) => (

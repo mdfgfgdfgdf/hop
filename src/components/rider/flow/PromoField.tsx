@@ -14,7 +14,7 @@ export function PromoField({ applied, onApply, onClear }: { applied: string | nu
 
   if (applied) {
     return (
-      <div className="flex min-h-11 items-center gap-2 rounded-2xl bg-success/10 px-3 text-sm">
+      <div className="flex min-h-11 items-center gap-2 rounded-2xl bg-success/10 px-3 text-sm shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--success)_22%,transparent)]">
         <Check size={16} className="text-success" aria-hidden />
         <span className="flex-1 font-semibold">
           קופון <span className="ltr-nums font-extrabold">{applied}</span> הופעל
@@ -68,7 +68,7 @@ export function PromoField({ applied, onApply, onClear }: { applied: string | nu
                 invalid={!!error}
                 autoCapitalize="characters"
               />
-              <Button type="submit" variant="ink" className="h-12" loading={busy}>
+              <Button type="submit" variant="glass" className="h-12" loading={busy}>
                 החלה
               </Button>
             </div>

@@ -5,6 +5,7 @@ import { ArrowRight, Building2, Clock, LocateFixed, MapPin, MapPinned, Search, T
 import { api } from "@/lib/api";
 import { formatDistance } from "@/lib/format";
 import type { PlaceDTO } from "@/lib/types";
+import { AnimatedMark } from "@/components/brand/AnimatedLogo";
 import { Skeleton } from "@/components/ui";
 import { describeError, isAbort, type FriendlyError } from "../lib/errors";
 import { distanceM } from "../lib/geo";
@@ -80,11 +81,12 @@ export function DestinationSearch({
         <button type="button" onClick={onClose} className="btn btn-ghost btn-icon shrink-0" aria-label="חזרה">
           <ArrowRight size={22} aria-hidden />
         </button>
-        <h2 className="text-lg font-extrabold">לאן נוסעים?</h2>
+        <h2 className="min-w-0 flex-1 text-lg font-extrabold">לאן נוסעים?</h2>
+        <AnimatedMark size={36} mode={searching ? "loading" : "idle"} hopOn="both" title="HOP" className="me-1 shrink-0" />
       </div>
 
       <div className="px-4 pt-2 pb-3">
-        <div className="relative rounded-[22px] border border-line bg-surface/80 p-1.5 shadow-[inset_0_1px_2px_rgba(17,19,24,.04)] transition-shadow focus-within:border-brand/50 focus-within:shadow-[0_0_0_4px_color-mix(in_oklab,var(--brand)_14%,transparent)]">
+        <div className="tile relative rounded-[22px] p-1.5 transition-shadow focus-within:shadow-[inset_0_0_0_1.5px_color-mix(in_oklab,var(--brand)_60%,transparent),0_0_0_4px_color-mix(in_oklab,var(--brand)_14%,transparent)]">
           <span className="absolute start-[22px] top-[30px] bottom-[30px] w-0.5 rounded-full bg-[color-mix(in_oklab,var(--fg)_14%,transparent)]" aria-hidden />
           <button type="button" onClick={onEditPickup} className="flex min-h-12 w-full items-center gap-3 rounded-2xl px-2.5 text-start hover:bg-[color-mix(in_oklab,var(--fg)_4%,transparent)]">
             <span className="relative z-[1] h-4 w-4 shrink-0 rounded-full border-[3px] border-surface bg-brand shadow-[0_0_0_1px_var(--line-strong)]" aria-hidden />
@@ -205,7 +207,7 @@ function PlaceRow({ icon, title, subtitle, meta, onClick }: { icon: React.ReactN
   return (
     <StaggerItem>
       <button type="button" onClick={onClick} className="flex min-h-14 w-full items-center gap-3 rounded-2xl px-3 py-2 text-start hover:bg-[color-mix(in_oklab,var(--fg)_5%,transparent)]">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[color-mix(in_oklab,var(--fg)_7%,transparent)] text-fg-muted">{icon}</span>
+        <span className="well grid h-10 w-10 shrink-0 place-items-center rounded-full text-fg-muted">{icon}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[15px] font-semibold">{title}</span>
           <span className="block truncate text-xs text-fg-muted">{subtitle}</span>

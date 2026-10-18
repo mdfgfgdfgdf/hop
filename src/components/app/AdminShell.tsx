@@ -9,7 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { ChevronLeft, Headset, Lock, LogOut, Menu, PanelRightClose, PanelRightOpen, ShieldCheck, X } from "lucide-react";
-import { Logo, LogoMark } from "@/components/brand/Logo";
+import { AnimatedLogo, AnimatedMark } from "@/components/brand/AnimatedLogo";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { cn } from "@/components/ui/cn";
 import { useSession } from "@/components/app/session";
@@ -17,6 +17,7 @@ import { api } from "@/lib/api";
 import { AdminProvider, type StaffRole } from "@/components/admin/context";
 import { AdminRealtimeProvider, useAdminFeed, useFeedStatus } from "@/components/admin/realtime";
 import { useDebouncedCallback, useLoad } from "@/components/admin/hooks";
+import { useBrandBusy, useReportBusy } from "@/components/admin/brand";
 import { NAV, NAV_GROUPS, activeNav, type NavKey } from "@/components/admin/nav";
 import "@/components/admin/admin.css";
 
@@ -61,7 +62,8 @@ export function AdminShell({ children, demoMode, role, name }: { children: React
 type Counts = Partial<Record<NavKey, { n: number; tone: "warning" | "brand" | "danger" }>>;
 
 function useNavCounts(): Counts {
-  const { data, reload } = useLoad("nav-counts", () => api.admin.overview());
+  const { data, reload, refreshing } = useLoad("nav-counts", () => api.admin.overview());
+  useReportBusy("nav-counts", refreshing);
   const debounced = useDebouncedCallback(reload, 2500);
   useAdminFeed((e) => {
     if (e.type === "admin.ride" || e.type === "admin.driver" || e.type === "notification" || e.type === "reconnect") debounced();
@@ -81,26 +83,28 @@ function ShellFrame({ children, demoMode, role, name }: { children: React.ReactN
   const counts = useNavCounts();
   const { item, isDetail } = activeNav(pathname);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+  const busy = useBrandBusy();
+  const logoMode = busy ? "loading" : "idle";
 
   return (
     <div data-theme="light" data-app="admin" data-role={role} data-user={name} className="admin-root flex min-h-dvh flex-col bg-bg text-fg">
-      <a href="#admin-main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:z-[100] focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-white [inset-inline-start:8px]">
+      <a href="#admin-main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:z-[100] focus:rounded-full focus:bg-brand focus:px-4 focus:py-2 focus:text-white [inset-inline-start:8px]">
         דילוג לתוכן
       </a>
 
       {/* desktop sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 z-30 hidden flex-col border-e border-line bg-surface/85 backdrop-blur-xl transition-[width] duration-300 lg:flex [inset-inline-start:0]",
+          "fixed inset-y-0 z-30 hidden flex-col border-e border-line bg-[linear-gradient(180deg,#fff_0%,#fff_60%,var(--brand-50)_100%)] transition-[width] duration-300 lg:flex [inset-inline-start:0]",
           collapsed ? "w-[76px]" : "w-[264px]",
         )}
         aria-label="ניווט ראשי"
       >
         <div className={cn("flex h-16 shrink-0 items-center gap-3 border-b border-line", collapsed ? "justify-center px-2" : "px-5")}>
-          <Link href="/admin" aria-label="HOP — סקירה" className="flex items-center gap-2.5">
-            {collapsed ? <LogoMark size={36} /> : <Logo height={24} />}
+          <Link href="/admin" aria-label="HOP — סקירה" className="flex items-center gap-2.5 rounded-xl" data-logo-mode={logoMode}>
+            {collapsed ? <AnimatedMark size={38} mode={logoMode} hopOn="hover" title="HOP" /> : <AnimatedLogo height={26} mode={logoMode} hopOn="hover" title="HOP" />}
           </Link>
-          {!collapsed && <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold tracking-[0.12em] text-white">OPS</span>}
+          {!collapsed && <OpsBadge />}
         </div>
         <NavList collapsed={collapsed} counts={counts} activeKey={item.key} role={role} />
         <div className={cn("border-t border-line p-3", collapsed && "px-2")}>
@@ -126,13 +130,14 @@ function ShellFrame({ children, demoMode, role, name }: { children: React.ReactN
           role={role}
           name={name}
           onMenu={() => setDrawerOpen(true)}
+          logoMode={logoMode}
         />
         <main id="admin-main" className="min-w-0 flex-1" tabIndex={-1}>
           {children}
         </main>
       </div>
 
-      <MobileDrawer open={drawerOpen} onClose={closeDrawer} counts={counts} activeKey={item.key} role={role} name={name} />
+      <MobileDrawer open={drawerOpen} onClose={closeDrawer} counts={counts} activeKey={item.key} role={role} name={name} logoMode={logoMode} />
     </div>
   );
 }
@@ -215,7 +220,12 @@ export function RoleBadge({ role, className, compact }: { role: StaffRole; class
   const label = role === "admin" ? "מנהל" : "תמיכה";
   return (
     <span
-      className={cn("inline-flex h-7 items-center gap-1.5 rounded-full text-xs font-bold", compact ? "w-7 justify-center" : "px-2.5", role === "admin" ? "bg-brand text-white" : "bg-ink text-white", className)}
+      className={cn(
+        "inline-flex h-7 items-center gap-1.5 rounded-full text-xs font-bold",
+        compact ? "w-7 justify-center" : "px-2.5",
+        role === "admin" ? "bg-brand-50 text-brand-700 shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--brand)_22%,transparent)]" : "bg-[color-mix(in_oklab,var(--fg)_7%,transparent)] text-fg shadow-[inset_0_0_0_1px_var(--line)]",
+        className,
+      )}
       aria-label={compact ? `תפקיד: ${label}` : undefined}
       title={compact ? label : undefined}
     >
@@ -225,7 +235,25 @@ export function RoleBadge({ role, className, compact }: { role: StaffRole; class
   );
 }
 
-function TopBar({ title, sectionHref, detail, demoMode, role, name, onMenu }: { title: string; sectionHref: string; detail: string | null; demoMode: boolean; role: StaffRole; name: string; onMenu: () => void }) {
+function TopBar({
+  title,
+  sectionHref,
+  detail,
+  demoMode,
+  role,
+  name,
+  onMenu,
+  logoMode,
+}: {
+  title: string;
+  sectionHref: string;
+  detail: string | null;
+  demoMode: boolean;
+  role: StaffRole;
+  name: string;
+  onMenu: () => void;
+  logoMode: "idle" | "loading";
+}) {
   const { logout } = useSession();
   const [loggingOut, setLoggingOut] = useState(false);
   return (
@@ -233,6 +261,9 @@ function TopBar({ title, sectionHref, detail, demoMode, role, name, onMenu }: { 
       <button type="button" onClick={onMenu} className="grid h-11 w-11 shrink-0 place-items-center rounded-full hover:bg-[color-mix(in_oklab,var(--fg)_6%,transparent)] lg:hidden" aria-label="פתיחת תפריט">
         <Menu size={22} />
       </button>
+      <Link href="/admin" aria-label="HOP — סקירה" className="hidden shrink-0 rounded-[10px] sm:block lg:hidden">
+        <AnimatedMark size={34} mode={logoMode} hopOn="hover" title="HOP" />
+      </Link>
       <div className="flex min-w-0 flex-1 items-center gap-2">
         {detail ? (
           <nav aria-label="פירורי לחם" className="flex min-w-0 items-center gap-1.5 text-[15px]">
@@ -266,7 +297,7 @@ function TopBar({ title, sectionHref, detail, demoMode, role, name, onMenu }: { 
           <RoleBadge role={role} />
         </span>
         <div className="hidden items-center gap-2 border-s border-line ps-3 md:flex">
-          <span aria-hidden className="grid h-8 w-8 place-items-center rounded-full bg-ink text-xs font-bold text-white">
+          <span aria-hidden className="grid h-8 w-8 place-items-center rounded-full bg-brand text-xs font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.35)]">
             {name.split(/\s+/).slice(0, 2).map((w) => w[0]).join("")}
           </span>
           <span className="max-w-[140px] truncate text-sm font-semibold">{name}</span>
@@ -293,13 +324,17 @@ function TopBar({ title, sectionHref, detail, demoMode, role, name, onMenu }: { 
   );
 }
 
-function MobileDrawer({ open, onClose, counts, activeKey, role, name }: { open: boolean; onClose: () => void; counts: Counts; activeKey: NavKey; role: StaffRole; name: string }) {
+function OpsBadge() {
+  return <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-extrabold tracking-[0.14em] text-brand-700 shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--brand)_20%,transparent)]">OPS</span>;
+}
+
+function MobileDrawer({ open, onClose, counts, activeKey, role, name, logoMode }: { open: boolean; onClose: () => void; counts: Counts; activeKey: NavKey; role: StaffRole; name: string; logoMode: "idle" | "loading" }) {
   const { logout } = useSession();
   return (
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true" aria-label="תפריט ניווט" onKeyDown={(e) => e.key === "Escape" && onClose()}>
-          <motion.div className="absolute inset-0 bg-[rgba(17,19,24,0.38)] backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} aria-hidden />
+          <motion.div className="absolute inset-0 bg-[rgba(17,19,24,0.32)] backdrop-blur-[3px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} aria-hidden />
           <motion.aside
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -309,8 +344,8 @@ function MobileDrawer({ open, onClose, counts, activeKey, role, name }: { open: 
           >
             <div className="flex h-16 items-center justify-between border-b border-line px-4">
               <div className="flex items-center gap-2.5">
-                <Logo height={24} />
-                <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold tracking-[0.12em] text-white">OPS</span>
+                <AnimatedLogo height={24} mode={logoMode} hopOn="both" title="HOP" />
+                <OpsBadge />
               </div>
               <button type="button" onClick={onClose} autoFocus className="grid h-11 w-11 place-items-center rounded-full hover:bg-[color-mix(in_oklab,var(--fg)_6%,transparent)]" aria-label="סגירת התפריט">
                 <X size={20} />
@@ -318,7 +353,7 @@ function MobileDrawer({ open, onClose, counts, activeKey, role, name }: { open: 
             </div>
             <NavList counts={counts} activeKey={activeKey} role={role} onNavigate={onClose} />
             <div className="flex items-center gap-3 border-t border-line p-4 safe-bottom">
-              <span aria-hidden className="grid h-10 w-10 place-items-center rounded-full bg-ink text-sm font-bold text-white">
+              <span aria-hidden className="grid h-10 w-10 place-items-center rounded-full bg-brand text-sm font-bold text-white">
                 {name.split(/\s+/).slice(0, 2).map((w) => w[0]).join("")}
               </span>
               <div className="min-w-0 flex-1">

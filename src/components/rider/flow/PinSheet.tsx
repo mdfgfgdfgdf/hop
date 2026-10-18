@@ -25,8 +25,15 @@ export function PinSheet({
   return (
     <div className="flex flex-1 flex-col">
       <SheetTitle eyebrow={target === "pickup" ? "נקודת איסוף" : "יעד"}>{target === "pickup" ? "מאיפה אוספים אתכם?" : "לאן נוסעים?"}</SheetTitle>
-      <div className="flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-surface/70 px-3 py-2.5" aria-live="polite">
-        <span className={target === "pickup" ? "h-4 w-4 shrink-0 rounded-full bg-brand" : "h-4 w-4 shrink-0 rounded-[5px] bg-ink"} aria-hidden />
+      <div className="tile flex min-h-16 items-center gap-3 rounded-[20px] px-3 py-2.5" aria-live="polite">
+        <span
+          className={
+            target === "pickup"
+              ? "h-4 w-4 shrink-0 rounded-full border-[3px] border-white bg-brand shadow-[0_0_0_1px_var(--line-strong),0_4px_10px_-3px_rgba(36,87,255,.6)]"
+              : "h-4 w-4 shrink-0 rounded-[5px] border-[3px] border-white bg-ink shadow-[0_0_0_1px_var(--line-strong)]"
+          }
+          aria-hidden
+        />
         <div className="min-w-0 flex-1">
           {busy ? (
             <>

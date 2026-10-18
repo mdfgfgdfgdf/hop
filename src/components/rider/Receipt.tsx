@@ -31,7 +31,7 @@ export function Receipt({ ride }: { ride: RideDTO }) {
           <span className="font-bold text-success ltr-nums">{formatILS(ride.refundedAgorot)}</span>
         </div>
       )}
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface/70 px-3 py-2.5 text-sm">
+      <div className="well flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-sm">
         <span className="flex items-center gap-2 font-semibold">
           <PayIcon size={18} className="text-fg-muted" aria-hidden />
           {PAYMENT_METHOD_HE[ride.paymentMethod]}
@@ -51,7 +51,7 @@ export function Receipt({ ride }: { ride: RideDTO }) {
 
 function TripStat({ label, actual, estimated, format }: { label: string; actual: number | null; estimated: number; format: (n: number) => string }) {
   return (
-    <div className="rounded-2xl border border-line bg-surface/70 px-3 py-2.5">
+    <div className="well rounded-2xl px-3 py-2.5">
       <dt className="text-xs font-semibold text-fg-muted">{label}</dt>
       <dd className="mt-0.5 font-extrabold tabular-nums">{actual != null ? format(actual) : "—"}</dd>
       <dd className="text-xs text-fg-muted">משוער: {format(estimated)}</dd>

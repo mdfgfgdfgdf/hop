@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Flag, SearchX } from "lucide-react";
-import { Logo } from "@/components/brand/Logo";
+import { AnimatedLogo } from "@/components/brand/AnimatedLogo";
 import { api } from "@/lib/api";
 import { formatDateTime, formatTime } from "@/lib/format";
 import { CANCELLED_BY_HE } from "@/lib/labels";
@@ -61,7 +61,7 @@ export function RideDetail({ id }: { id: string }) {
           <EmptyState icon={<SearchX size={26} aria-hidden />} title="לא מצאנו את הנסיעה הזו" description="ייתכן שהקישור שגוי או שהנסיעה שייכת לחשבון אחר." action={<Link href="/ride/history" className="btn btn-glass">לכל הנסיעות</Link>} />
         </div>
       )}
-      {error && !notFound && <InlineError error={error} action={<Button size="sm" variant="ink" onClick={() => setAttempt((a) => a + 1)}>ניסיון חוזר</Button>} />}
+      {error && !notFound && <InlineError error={error} action={<Button size="sm" variant="glass" onClick={() => setAttempt((a) => a + 1)}>ניסיון חוזר</Button>} />}
       {!ride && !error && <DetailSkeleton />}
       {ride && (
         <div data-testid="ride-detail">
@@ -87,7 +87,7 @@ export function RideDetail({ id }: { id: string }) {
           </div>
 
           {ride.status === "cancelled" && (
-            <div className="mb-4 rounded-2xl bg-[color-mix(in_oklab,var(--fg)_5%,transparent)] px-4 py-3 text-sm">
+            <div className="well mb-4 rounded-2xl px-4 py-3 text-sm">
               <b>הנסיעה בוטלה{ride.cancelledBy ? ` על ידי ${CANCELLED_BY_HE[ride.cancelledBy]}` : ""}</b>
               {ride.cancelledAt ? ` · ${formatTime(ride.cancelledAt)}` : ""}
               {cancelReasonText(ride) && <div className="text-fg-muted">סיבה: {cancelReasonText(ride)}</div>}
@@ -108,7 +108,7 @@ export function RideDetail({ id }: { id: string }) {
             </Section>
           )}
 
-          <Section title="קבלה" action={<Logo height={16} />}>
+          <Section title="קבלה" action={<AnimatedLogo height={16} hopOn="hover" title="HOP" />}>
             <div className="card p-4">
               <Receipt ride={ride} />
             </div>

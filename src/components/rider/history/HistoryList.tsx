@@ -50,7 +50,7 @@ export function HistoryList() {
 
   return (
     <RiderPage title="הנסיעות שלי" subtitle={rides ? (rides.length ? `${rides.length}${more ? "+" : ""} נסיעות` : "עדיין בלי נסיעות") : "טוען…"}>
-      {error && !rides && <InlineError error={error} action={<Button size="sm" variant="ink" onClick={() => load(0)}>ניסיון חוזר</Button>} />}
+      {error && !rides && <InlineError error={error} action={<Button size="sm" variant="glass" onClick={() => load(0)}>ניסיון חוזר</Button>} />}
       {!rides && !error && (
         <div className="space-y-3" aria-busy="true" aria-label="טוען נסיעות">
           {[0, 1, 2, 3].map((i) => (
