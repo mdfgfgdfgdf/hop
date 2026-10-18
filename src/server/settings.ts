@@ -10,6 +10,8 @@ export const SETTING_DEFAULTS = {
   "dispatch.driverStaleLocationSec": 180,
   "dispatch.minAcceptanceRateBp": 0, // 0 = disabled (fairness: off until justified)
   "dispatch.retryIntervalSec": 4,
+  // Safety: the driver must type the rider's 4-digit pickup code before starting the ride.
+  "dispatch.requirePickupPin": false,
   "demo.autopilot": true,
   "demo.autopilotAcceptDelaySec": 3,
   "demo.driverSpeedMps": 14,

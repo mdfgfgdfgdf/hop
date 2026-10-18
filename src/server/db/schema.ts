@@ -133,7 +133,11 @@ export const ledgerTypeEnum = pgEnum("ledger_type", [
   "refund",
   "adjustment",
   "processing_fee",
+  "tip_charge", // rider pays a tip (after the ride)
+  "tip_payout", // 100 % of the tip goes to the driver, no commission
 ]);
+
+export const savedPlaceKindEnum = pgEnum("saved_place_kind", ["home", "work", "other"]);
 
 export const ticketStatusEnum = pgEnum("ticket_status", [
   "open",
@@ -496,6 +500,9 @@ export const rides = pgTable(
     cancelledAt: ts("cancelled_at"),
     cancelledBy: cancelledByEnum("cancelled_by"),
     cancelReason: text("cancel_reason"),
+    // safety: 4-digit code the rider tells the driver at pickup (shown to the rider only)
+    pickupPin: text("pickup_pin"),
+    tipAgorot: integer("tip_agorot").notNull().default(0),
     // ratings
     riderRating: integer("rider_rating"), // rating given BY the rider TO the driver
     driverRating: integer("driver_rating"), // rating given BY the driver TO the rider
@@ -605,6 +612,64 @@ export const ledgerEntries = pgTable(
     index("ledger_user_idx").on(t.userId, t.createdAt),
     index("ledger_type_idx").on(t.type, t.createdAt),
   ],
+);
+
+// ───────────────────────────── Rider extras ─────────────────────────────
+
+/** Home / work / favourite places of a user. */
+export const savedPlaces = pgTable(
+  "saved_places",
+  {
+    id: id(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
+    kind: savedPlaceKindEnum("kind").notNull().default("other"),
+    label: text("label").notNull(),
+    address: text("address").notNull(),
+    lat: doublePrecision("lat").notNull(),
+    lng: doublePrecision("lng").notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("saved_places_user_idx").on(t.userId)],
+);
+
+/** Rider ↔ driver messages during a ride. */
+export const rideMessages = pgTable(
+  "ride_messages",
+  {
+    id: id(),
+    rideId: text("ride_id")
+      .notNull()
+      .references(() => rides.id),
+    senderId: text("sender_id")
+      .notNull()
+      .references(() => users.id),
+    senderRole: text("sender_role").$type<"rider" | "driver">().notNull(),
+    body: text("body").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("ride_messages_ride_idx").on(t.rideId, t.createdAt)],
+);
+
+/** Live trip-sharing links (token stored hashed). */
+export const rideShares = pgTable(
+  "ride_shares",
+  {
+    id: id(),
+    rideId: text("ride_id")
+      .notNull()
+      .references(() => rides.id),
+    tokenHash: text("token_hash").notNull(),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id),
+    expiresAt: ts("expires_at").notNull(),
+    revokedAt: ts("revoked_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("ride_shares_token_idx").on(t.tokenHash), index("ride_shares_ride_idx").on(t.rideId)],
 );
 
 // ───────────────────────────── Support & audit ─────────────────────────────
@@ -751,6 +816,9 @@ export type TicketMessage = typeof ticketMessages.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type ServiceArea = typeof serviceAreas.$inferSelect;
 export type Promotion = typeof promotions.$inferSelect;
+export type SavedPlace = typeof savedPlaces.$inferSelect;
+export type RideMessage = typeof rideMessages.$inferSelect;
+export type RideShare = typeof rideShares.$inferSelect;
 
 export type UserRole = User["role"];
 export type RideStatus = Ride["status"];

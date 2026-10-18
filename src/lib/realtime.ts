@@ -48,7 +48,7 @@ export function useRealtime(opts: { onEvent?: Handler; onReconnect?: () => void;
           /* ignore malformed */
         }
       };
-      for (const t of ["ping", "ride.updated", "ride.offer", "ride.offer.cancelled", "driver.location", "driver.availability", "admin.ride", "admin.driver", "notification"]) {
+      for (const t of ["ping", "ride.updated", "ride.offer", "ride.offer.cancelled", "ride.message", "ride.tip", "driver.location", "driver.availability", "admin.ride", "admin.driver", "notification"]) {
         es.addEventListener(t, onMessage as EventListener);
       }
     };

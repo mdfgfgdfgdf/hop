@@ -15,6 +15,8 @@ export type RealtimeEvent = {
     | "ride.updated"
     | "ride.offer"
     | "ride.offer.cancelled"
+    | "ride.message"
+    | "ride.tip"
     | "driver.location"
     | "driver.availability"
     | "admin.ride"

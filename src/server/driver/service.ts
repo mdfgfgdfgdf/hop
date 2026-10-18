@@ -139,17 +139,19 @@ export async function earnings(driverId: string, range: { from: Date; to: Date }
     .where(and(eq(ledgerEntries.type, "cancellation_fee"), eq(rides.driverId, driverId), gte(ledgerEntries.createdAt, range.from), lte(ledgerEntries.createdAt, range.to)));
   const [cfg] = await db.select({ isDemo: pricingConfigs.isDemo }).from(pricingConfigs).where(eq(pricingConfigs.active, true)).limit(1);
 
-  const byDayMap = new Map<string, { rides: number; netAgorot: number; grossAgorot: number }>();
-  let gross = 0, commission = 0, net = 0;
+  const byDayMap = new Map<string, { rides: number; netAgorot: number; grossAgorot: number; tipsAgorot: number }>();
+  let gross = 0, commission = 0, net = 0, tips = 0;
   for (const r of rows) {
     gross += r.finalTotalAgorot ?? 0;
     commission += r.commissionAgorot ?? 0;
     net += r.driverPayoutAgorot ?? 0;
+    tips += r.tipAgorot;
     const day = dayKeyIL(r.completedAt ?? r.createdAt);
-    const d = byDayMap.get(day) ?? { rides: 0, netAgorot: 0, grossAgorot: 0 };
+    const d = byDayMap.get(day) ?? { rides: 0, netAgorot: 0, grossAgorot: 0, tipsAgorot: 0 };
     d.rides += 1;
     d.netAgorot += r.driverPayoutAgorot ?? 0;
     d.grossAgorot += r.finalTotalAgorot ?? 0;
+    d.tipsAgorot += r.tipAgorot;
     byDayMap.set(day, d);
   }
   return {
@@ -159,6 +161,8 @@ export async function earnings(driverId: string, range: { from: Date; to: Date }
     grossAgorot: gross,
     commissionAgorot: commission,
     netAgorot: net,
+    // Tips are paid in full to the driver, on top of the payout (by ride completion day).
+    tipsAgorot: tips,
     cancellationFeesAgorot: Number(cancellationRows[0]?.total ?? 0),
     byDay: [...byDayMap.entries()].sort(([a], [b]) => (a < b ? 1 : -1)).map(([date, v]) => ({ date, ...v })),
     isDemoTariff: cfg?.isDemo ?? true,

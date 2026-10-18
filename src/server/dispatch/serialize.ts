@@ -89,6 +89,7 @@ export function serializeRide(
     driver?: User | null;
     driverProfile?: DriverProfile | null;
     offer?: RideOffer | null;
+    pickupPinRequired?: boolean;
   },
   viewer: Viewer,
 ): RideDTO {
@@ -104,6 +105,10 @@ export function serializeRide(
     dropoff: { lat: ride.dropoffLat, lng: ride.dropoffLng, address: ride.dropoffAddress },
     polyline: ride.polyline,
     traffic: ride.traffic ?? null,
+    // The code is the rider's to tell the driver: never sent to the driver.
+    pickupPin: isRider && (ride.status === "accepted" || ride.status === "driver_arriving") ? ride.pickupPin : null,
+    pickupPinRequired: !!ctx.pickupPinRequired,
+    tipAgorot: ride.tipAgorot,
     estimatedDistanceM: ride.estimatedDistanceM,
     estimatedDurationS: ride.estimatedDurationS,
     actualDistanceM: ride.actualDistanceM,

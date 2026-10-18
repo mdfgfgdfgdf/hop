@@ -26,6 +26,12 @@ authoritative state (e.g. `api.rides.active()`).
 - `GET /api/geo/route?fromLat&fromLng&toLat&toLng` (rider/driver) → `{route}`: a road route with `traffic` (`{source, durationNoTrafficS, spans:[{from,to,level}]}`) when a traffic-aware router is configured. For navigation and live ETAs; prices are only computed in `/api/quotes`.
 - `GET /api/map/config` → `{trafficTiles, trafficRouting, geoProvider}` · `GET /api/map/traffic/:z/:x/:y` (signed-in) → a live traffic overlay PNG (TomTom flow, proxied, cached 60 s).
 - Quotes (`route.traffic`) and rides (`traffic`) carry the congestion measured when the ride was quoted.
+- `POST /api/rides/:id/tip {amountAgorot}` (rider): once, ₪1–₪200, within 7 days of completion. Ledger `tip_charge` (rider) + `tip_payout` (driver, 100 %, no commission). The driver gets a `ride.tip` event and earnings include `tipsAgorot`.
+- `GET|POST /api/rides/:id/messages {body}`: rider ↔ driver chat, sendable only by the two parties while the ride is `accepted`, `driver_arriving` or `in_progress`. Max 500 chars, 20/min. Staff can read. Live via the `ride.message` event.
+- `POST|DELETE /api/rides/:id/share` (rider) → `{token,url,expiresAt}` creates or revokes live trip-sharing links. Tokens are stored hashed and expire after 6 h or 30 min after the ride ends. `GET /api/share/:token` is public, rate-limited, and shows status, first names, the vehicle, the route and the live car position. No prices, no phone numbers.
+- `GET|POST /api/me/places`, `DELETE /api/me/places/:id`: the user's own saved places (one home, one work, up to 20 favourites).
+- `GET /api/driver/demand` (driver) → `{cells:[{lat,lng,requests}]}`: real ride requests from the last hour per ~600 m cell. Cells with a single request are hidden.
+- Pickup PIN: every accepted ride gets a 4-digit `pickupPin`, sent only to the rider while the driver is on the way. With the `dispatch.requirePickupPin` setting (admin), `POST /api/driver/rides/:id/start {pin}` must match.
 - `GET /api/rides/nearby?lat&lng` (rider) → `{cars:[{id,lat,lng,heading,vehicleClass}]}`: available, approved, non-busy drivers within 3 km, max 8. `id` is a per-day anonymous token; coordinates are rounded to ~10 m; no names or plates.
 - `POST /api/rides/:id/cancel` {reason?} · `POST /api/rides/:id/rate` {stars, comment?}
 - `GET /api/rides/:id/events` (timeline)

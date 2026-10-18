@@ -3,6 +3,10 @@
  * Every call returns parsed JSON or throws ApiClientError { code, message }.
  */
 import type {
+  DemandCellDTO,
+  RideMessageDTO,
+  SavedPlaceDTO,
+  SharedRideDTO,
   RouteDTO,
   NearbyCarDTO,
   DriverDocumentDTO,
@@ -104,8 +108,27 @@ export const api = {
     events: (id: string) => apiFetch<{ events: RideEventDTO[] }>(`/api/rides/${id}/events`),
     cancel: (id: string, reason?: string | null) => apiFetch<{ ride: RideDTO }>(`/api/rides/${id}/cancel`, { method: "POST", body: { reason: reason ?? null } }),
     rate: (id: string, stars: number, comment?: string | null) => apiFetch<{ ride: RideDTO }>(`/api/rides/${id}/rate`, { method: "POST", body: { stars, comment: comment ?? null } }),
+    /** Tip after a completed ride: ₪1–₪200, once, 100 % to the driver. */
+    tip: (id: string, amountAgorot: number) => apiFetch<{ rideId: string; tipAgorot: number }>(`/api/rides/${id}/tip`, { method: "POST", body: { amountAgorot } }),
+    /** Rider ↔ driver chat (rider and driver of a live ride). */
+    messages: (id: string) => apiFetch<{ messages: RideMessageDTO[] }>(`/api/rides/${id}/messages`),
+    sendMessage: (id: string, body: string) => apiFetch<{ message: RideMessageDTO }>(`/api/rides/${id}/messages`, { method: "POST", body: { body } }),
+    /** Live trip-sharing link for people the rider chooses. */
+    share: (id: string) => apiFetch<{ token: string; url: string; expiresAt: string }>(`/api/rides/${id}/share`, { method: "POST" }),
+    unshare: (id: string) => apiFetch<{ revoked: number }>(`/api/rides/${id}/share`, { method: "DELETE" }),
+  },
+  /** Public trip-sharing view (no sign-in). */
+  share: {
+    get: (token: string) => apiFetch<{ ride: SharedRideDTO }>(`/api/share/${encodeURIComponent(token)}`),
+  },
+  me: {
+    places: () => apiFetch<{ places: SavedPlaceDTO[] }>("/api/me/places"),
+    savePlace: (input: { kind: SavedPlaceDTO["kind"]; label?: string | null; address: string; lat: number; lng: number }) => apiFetch<{ place: SavedPlaceDTO }>("/api/me/places", { method: "POST", body: input }),
+    deletePlace: (id: string) => apiFetch<{ deleted: true }>(`/api/me/places/${id}`, { method: "DELETE" }),
   },
   driver: {
+    /** Real ride requests of the last hour per ~600 m cell. */
+    demand: () => apiFetch<{ cells: DemandCellDTO[] }>("/api/driver/demand"),
     profile: () => apiFetch<{ profile: DriverProfileDTO; documents: DriverDocumentDTO[]; requiredDocuments: string[] }>("/api/driver/profile"),
     updateProfile: (input: Partial<Pick<DriverProfileDTO, "vehicleClass" | "vehicleMake" | "vehicleModel" | "vehicleColor" | "vehiclePlate" | "vehicleYear" | "seats" | "licenseNumber" | "taxiLicenseNumber" | "serviceTypeIds">>) =>
       apiFetch<{ profile: DriverProfileDTO }>("/api/driver/profile", { method: "PATCH", body: input }),
@@ -125,7 +148,7 @@ export const api = {
     declineOffer: (rideId: string) => apiFetch<{ ride: RideDTO }>(`/api/driver/offers/${rideId}/decline`, { method: "POST" }),
     arriving: (rideId: string) => apiFetch<{ ride: RideDTO }>(`/api/driver/rides/${rideId}/arriving`, { method: "POST" }),
     arrived: (rideId: string) => apiFetch<{ ride: RideDTO }>(`/api/driver/rides/${rideId}/arrived`, { method: "POST" }),
-    start: (rideId: string) => apiFetch<{ ride: RideDTO }>(`/api/driver/rides/${rideId}/start`, { method: "POST" }),
+    start: (rideId: string, pin?: string) => apiFetch<{ ride: RideDTO }>(`/api/driver/rides/${rideId}/start`, { method: "POST", body: pin ? { pin } : {} }),
     complete: (rideId: string) => apiFetch<{ ride: RideDTO }>(`/api/driver/rides/${rideId}/complete`, { method: "POST" }),
     earnings: (range: "today" | "week" | "month" | "all" = "week") => apiFetch<{ earnings: EarningsDTO }>(`/api/driver/earnings?range=${range}`),
   },

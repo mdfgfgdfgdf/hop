@@ -4,7 +4,7 @@
  * status, so two drivers can never accept the same ride and a ride can never
  * be started or completed twice — regardless of how many requests race.
  */
-import { createHash } from "node:crypto";
+import { createHash, randomInt } from "node:crypto";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb, type Db, type Tx } from "../db/client";
 import {
@@ -118,7 +118,7 @@ export async function getRideDTO(rideId: string, viewer: Viewer, opts: { skipAut
   if (!ride) throw notFound("הנסיעה לא נמצאה");
   if (!opts.skipAuth) assertCanView(ride, viewer);
   const ctx = await loadRideContext(db, ride);
-  const dto = serializeRide(ride, ctx, viewer);
+  const dto = serializeRide(ride, { ...ctx, pickupPinRequired: await getSetting("dispatch.requirePickupPin", db) }, viewer);
   // A driver who declined or cancelled is no longer a party: they get the
   // resulting status but no details about the rider or the next driver.
   return opts.stripCounterparts ? { ...dto, rider: null, driver: null, offer: null } : dto;
@@ -507,6 +507,7 @@ export async function respondToOffer(input: { driver: Actor; rideId: string; acc
           status: "accepted",
           driverId: input.driver.id,
           acceptedAt: now,
+          pickupPin: String(randomInt(0, 10_000)).padStart(4, "0"),
           offeredDriverId: null,
           offerExpiresAt: null,
           version: sql`${rides.version} + 1`,
@@ -586,12 +587,14 @@ async function driverTransition(
   to: "driver_arriving" | "in_progress",
   patch: Partial<typeof rides.$inferInsert>,
   eventType: string,
+  check?: (ride: Ride, tx: Tx) => Promise<void>,
 ) {
   const db = await getDb();
   await db.transaction(async (tx) => {
     const ride = await lockRide(tx, input.rideId);
     if (ride.driverId !== input.driver.id) throw forbidden();
     assertTransition(ride.status, to);
+    if (check) await check(ride, tx);
     const updated = await tx
       .update(rides)
       .set({ ...patch, status: to, version: sql`${rides.version} + 1` })
@@ -623,8 +626,12 @@ export async function driverArrived(input: { driver: Actor; rideId: string }) {
   return getRideDTO(input.rideId, input.driver);
 }
 
-export const startRide = (input: { driver: Actor; rideId: string }) =>
-  driverTransition(input, "in_progress", { startedAt: new Date() }, "started");
+/** Starts the ride. With dispatch.requirePickupPin the driver must enter the rider's code. */
+export const startRide = (input: { driver: Actor; rideId: string; pin?: string | null }) =>
+  driverTransition(input, "in_progress", { startedAt: new Date() }, "started", async (ride, tx) => {
+    if (!(await getSetting("dispatch.requirePickupPin", tx)) || !ride.pickupPin) return;
+    if ((input.pin ?? "").trim() !== ride.pickupPin) throw conflict("pin_mismatch", "קוד האיסוף שגוי. בקשו מהנוסע את הקוד שמופיע אצלו באפליקציה");
+  });
 
 export function computeRideFlags(ride: Ride, actualDistanceM: number, actualDurationS: number): RideFlag[] {
   const flags: RideFlag[] = [...ride.flags];

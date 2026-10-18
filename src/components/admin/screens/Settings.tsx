@@ -36,11 +36,11 @@ const DEMO: Spec[] = [
 ];
 const ALL = [...DISPATCH, ...DEMO];
 
-type Form = Record<NumKey, string> & { minAcceptancePct: string; autopilot: boolean; notice: string };
+type Form = Record<NumKey, string> & { minAcceptancePct: string; autopilot: boolean; pickupPin: boolean; notice: string };
 
 function toForm(s: Record<string, unknown>, d: Record<string, unknown>): Form {
   const get = (k: string) => (s[k] ?? d[k]) as unknown;
-  const f = { minAcceptancePct: String(Number(get("dispatch.minAcceptanceRateBp") ?? 0) / 100), autopilot: Boolean(get("demo.autopilot")), notice: String(get("platform.operatingNotice") ?? "") } as Form;
+  const f = { minAcceptancePct: String(Number(get("dispatch.minAcceptanceRateBp") ?? 0) / 100), autopilot: Boolean(get("demo.autopilot")), pickupPin: Boolean(get("dispatch.requirePickupPin")), notice: String(get("platform.operatingNotice") ?? "") } as Form;
   for (const spec of ALL) f[spec.key] = String(get(spec.key) ?? "");
   return f;
 }
@@ -84,6 +84,7 @@ function SettingsForm({ settings, defaults, onSaved }: { settings: Record<string
   if (!Number.isFinite(acc) || acc < 0 || acc > 100) errors.minAcceptancePct = "אחוז בין 0 ל-100";
   else if (form.minAcceptancePct !== initial.minAcceptancePct) patch["dispatch.minAcceptanceRateBp"] = Math.round(acc * 100);
   if (form.autopilot !== initial.autopilot) patch["demo.autopilot"] = form.autopilot;
+  if (form.pickupPin !== initial.pickupPin) patch["dispatch.requirePickupPin"] = form.pickupPin;
   if (form.notice.trim() !== initial.notice.trim()) patch["platform.operatingNotice"] = form.notice.trim();
   if (form.notice.trim().length < 5) errors.notice = "הודעה קצרה מדי";
   const valid = Object.keys(errors).length === 0;
@@ -151,6 +152,15 @@ function SettingsForm({ settings, defaults, onSaved }: { settings: Record<string
                 את ההשפעה על נהגים חדשים ועל אזורים שקטים.
               </p>
             </div>
+          </FormSection>
+          <FormSection title="קוד איסוף">
+            <label className={cn("flex items-start gap-3 rounded-2xl border border-line p-4", ro ? "cursor-not-allowed" : "cursor-pointer")}>
+              <Toggle checked={form.pickupPin} onChange={set("pickupPin")} disabled={ro} label="חובת קוד איסוף" />
+              <span className="text-sm">
+                <span className="block font-bold">{form.pickupPin ? "פעיל — הנהג מקליד את קוד הנוסע לפני תחילת הנסיעה" : "כבוי — הקוד מוצג לנוסע אך אינו נדרש"}</span>
+                <span className="mt-0.5 block text-fg-muted">קוד בן 4 ספרות שמוצג רק לנוסע. מונע עלייה לרכב הלא נכון.</span>
+              </span>
+            </label>
           </FormSection>
         </Panel>
 

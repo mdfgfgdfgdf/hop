@@ -123,6 +123,12 @@ export type RideDTO = {
   polyline: Polyline;
   /** Traffic along the route when it was quoted (null without a traffic-aware router). */
   traffic: RouteTrafficDTO | null;
+  /** 4-digit pickup code — sent to the rider only, while the driver is on the way. */
+  pickupPin: string | null;
+  /** Whether the driver must enter the pickup code to start the ride. */
+  pickupPinRequired: boolean;
+  /** Tip the rider added after the ride (100 % to the driver). */
+  tipAgorot: number;
   estimatedDistanceM: number;
   estimatedDurationS: number;
   actualDistanceM: number | null;
@@ -218,8 +224,9 @@ export type EarningsDTO = {
   grossAgorot: number; // what riders paid for the driver's rides
   commissionAgorot: number; // HOP commission on those rides
   netAgorot: number; // driver payout
+  tipsAgorot: number; // tips, 100 % to the driver, on top of the payout
   cancellationFeesAgorot: number;
-  byDay: { date: string; rides: number; netAgorot: number; grossAgorot: number }[];
+  byDay: { date: string; rides: number; netAgorot: number; grossAgorot: number; tipsAgorot: number }[];
   isDemoTariff: boolean;
 };
 
@@ -229,6 +236,8 @@ export type SseEvent = {
     | "ride.updated"
     | "ride.offer"
     | "ride.offer.cancelled"
+    | "ride.message"
+    | "ride.tip"
     | "driver.location"
     | "driver.availability"
     | "admin.ride"
@@ -243,3 +252,43 @@ export type ApiError = { error: { code: string; message: string; details?: unkno
 
 /** An available car near the rider: anonymous per-day token, ~10 m precision. */
 export type NearbyCarDTO = { id: string; lat: number; lng: number; heading: number | null; vehicleClass: string };
+
+/** A chat message between the rider and the driver of a ride. */
+export type RideMessageDTO = {
+  id: string;
+  rideId: string;
+  senderRole: "rider" | "driver";
+  senderName: string;
+  /** True when the viewer sent it. */
+  mine: boolean;
+  body: string;
+  createdAt: string;
+};
+
+/** What a live trip-sharing link shows: no prices, no phone numbers. */
+export type SharedRideDTO = {
+  status: RideStatus;
+  riderFirstName: string;
+  driverFirstName: string | null;
+  vehicle: { make: string | null; model: string | null; color: string | null; plate: string | null } | null;
+  pickup: { lat: number; lng: number; address: string };
+  dropoff: { lat: number; lng: number; address: string };
+  polyline: Polyline;
+  driverLocation: { lat: number; lng: number; heading: number | null; at: string } | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  estimatedDurationS: number;
+  expiresAt: string;
+};
+
+export type SavedPlaceDTO = {
+  id: string;
+  kind: "home" | "work" | "other";
+  label: string;
+  address: string;
+  lat: number;
+  lng: number;
+};
+
+/** Ride requests over the last hour, bucketed into ~600 m cells (real requests only). */
+export type DemandCellDTO = { lat: number; lng: number; requests: number };

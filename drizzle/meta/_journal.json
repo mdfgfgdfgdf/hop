@@ -15,6 +15,13 @@
       "when": 1792330538198,
       "tag": "0001_route_traffic",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792331091567,
+      "tag": "0002_rider_extras",
+      "breakpoints": true
     }
   ]
 }

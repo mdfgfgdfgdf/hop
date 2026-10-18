@@ -96,12 +96,13 @@ describe("settings defaults", () => {
       "demo.autopilotAcceptDelaySec",
       "demo.driverSpeedMps",
     ] as const;
-    expect(Object.keys(SETTING_DEFAULTS).sort()).toEqual([...numeric, "demo.autopilot", "platform.operatingNotice"].sort());
+    expect(Object.keys(SETTING_DEFAULTS).sort()).toEqual([...numeric, "demo.autopilot", "dispatch.requirePickupPin", "platform.operatingNotice"].sort());
     for (const k of numeric) {
       expect(typeof SETTING_DEFAULTS[k], k).toBe("number");
       expect(SETTING_DEFAULTS[k], k).toBeGreaterThanOrEqual(0);
     }
     expect(typeof SETTING_DEFAULTS["demo.autopilot"]).toBe("boolean");
+    expect(SETTING_DEFAULTS["dispatch.requirePickupPin"]).toBe(false); // opt-in safety feature
     expect(typeof SETTING_DEFAULTS["platform.operatingNotice"]).toBe("string");
   });
 

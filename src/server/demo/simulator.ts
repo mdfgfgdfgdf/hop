@@ -98,7 +98,8 @@ export async function simulateDemoDrivers() {
         await driverArrived({ driver: driver.user, rideId: ride.id }).catch(() => {});
         s.phaseStart = Date.now();
       } else if (Date.now() - s.phaseStart >= 4000) {
-        await startRide({ driver: driver.user, rideId: ride.id }).catch(() => {});
+        // A demo driver "hears" the rider's pickup code, as a real driver would.
+        await startRide({ driver: driver.user, rideId: ride.id, pin: ride.pickupPin }).catch(() => {});
         s.progress = 0;
         s.phaseStart = Date.now();
       }
