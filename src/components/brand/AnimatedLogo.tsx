@@ -15,7 +15,7 @@
  * `hopKey`:  change it to trigger a hop programmatically (e.g. on submit).
  * Reduced motion: everything static.
  */
-import { useEffect, useId, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useState, useSyncExternalStore, useCallback, useRef } from "react";
 import { motion, useReducedMotion, type Transition } from "motion/react";
 
 export type LogoMode = "idle" | "loading" | "moving" | "success";
@@ -44,25 +44,34 @@ function useHop(hopOn: "hover" | "mount" | "both" | "none", hopKey: unknown, mod
   // server under reduced motion (hydration mismatch); only honour it once hydrated.
   const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
   const reduce = useReducedMotion() && hydrated;
+  // Mount, hopKey and success can all ask for a hop in the same instant; coalesce them
+  // so one hop plays to the end instead of two overlapping, cut-short ones.
+  const lastHop = useRef(0);
+  const requestHop = useCallback(() => {
+    const now = Date.now();
+    if (now - lastHop.current < 650) return;
+    lastHop.current = now;
+    setCount((c) => c + 1);
+  }, []);
   useEffect(() => {
     if (reduce) return;
     if (hopOn === "mount" || hopOn === "both") {
-      const t = setTimeout(() => setCount((c) => c + 1), 250);
+      const t = setTimeout(requestHop, 250);
       return () => clearTimeout(t);
     }
-  }, [hopOn, reduce]);
+  }, [hopOn, reduce, requestHop]);
   useEffect(() => {
     if (reduce || hopKey === undefined) return;
-    const t = setTimeout(() => setCount((c) => c + 1), 0);
+    const t = setTimeout(requestHop, 250);
     return () => clearTimeout(t);
-  }, [hopKey, reduce]);
+  }, [hopKey, reduce, requestHop]);
   useEffect(() => {
     if (reduce || mode !== "success") return;
-    const t = setTimeout(() => setCount((c) => c + 1), 0);
+    const t = setTimeout(requestHop, 250);
     return () => clearTimeout(t);
-  }, [mode, reduce]);
+  }, [mode, reduce, requestHop]);
   const trigger = () => {
-    if (!reduce && (hopOn === "hover" || hopOn === "both")) setCount((c) => c + 1);
+    if (!reduce && (hopOn === "hover" || hopOn === "both")) requestHop();
   };
   return { count, trigger, reduce: !!reduce };
 }

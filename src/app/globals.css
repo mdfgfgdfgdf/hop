@@ -24,10 +24,16 @@
   --success: #17a35a;
   --warning: #f2a93b;
   --danger: #e5484d;
+  /* AA-contrast variants for white text on fills and for coloured text on tints */
+  --success-strong: #0f7f45;
+  --danger-strong: #c9363b;
+  --success-ink: #0d6b3a;
+  --warning-ink: #7a4a00;
+  --danger-ink: #b42328;
 
   --bg: var(--paper);
   --fg: var(--ink);
-  --fg-muted: var(--ink-500);
+  --fg-muted: #525867;
   --surface: #ffffff;
   --line: rgba(17, 19, 24, 0.08);
   --line-strong: rgba(17, 19, 24, 0.14);
@@ -246,12 +252,12 @@
   }
   /* Blue glass (brand moments: active states, CTAs on glass). */
   .glass-brand {
-    --glass-spec: rgba(255, 255, 255, 0.4);
-    --glass-pool: rgba(255, 255, 255, 0.3);
+    --glass-spec: rgba(255, 255, 255, 0.22);
+    --glass-pool: rgba(255, 255, 255, 0.16);
     --glass-depth: rgba(10, 30, 120, 0.45);
-    --glass-rim-hi: rgba(255, 255, 255, 0.7);
-    --glass-rim-lo: rgba(255, 255, 255, 0.15);
-    background: linear-gradient(160deg, rgba(64, 108, 255, 0.92), rgba(29, 74, 230, 0.94));
+    --glass-rim-hi: rgba(255, 255, 255, 0.6);
+    --glass-rim-lo: rgba(255, 255, 255, 0.12);
+    background: linear-gradient(160deg, rgba(43, 86, 240, 0.95), rgba(23, 59, 184, 0.97));
     color: #fff;
   }
 
@@ -386,14 +392,14 @@
     background: color-mix(in oklab, var(--fg) 6%, transparent);
   }
   .btn-danger {
-    background: var(--danger);
+    background: linear-gradient(180deg, #d9454a, var(--danger-strong));
     color: #fff;
-    box-shadow: 0 14px 30px -14px rgba(229, 72, 77, 0.7);
+    box-shadow: 0 12px 28px -14px rgba(201, 54, 59, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
   .btn-success {
-    background: var(--success);
+    background: linear-gradient(180deg, #16914f, var(--success-strong));
     color: #fff;
-    box-shadow: 0 14px 30px -14px rgba(23, 163, 90, 0.7);
+    box-shadow: 0 12px 28px -14px rgba(15, 127, 69, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
   .btn-sm {
     height: 40px;
@@ -452,7 +458,7 @@
   }
   .field-error {
     font-size: 0.8rem;
-    color: var(--danger);
+    color: var(--danger-ink);
   }
 
   /* ───────────────────────────── chips / pills ───────────────────────────── */
@@ -471,9 +477,9 @@
   .pill-brand { background: var(--brand-100); color: var(--brand-700); }
   [data-theme="dark"] .pill-brand { background: rgba(36, 87, 255, 0.28); color: var(--brand-200); }
   .pill-ink { background: color-mix(in oklab, var(--fg) 10%, transparent); color: var(--fg); }
-  .pill-success { background: color-mix(in oklab, var(--success) 16%, transparent); color: color-mix(in oklab, var(--success) 80%, var(--fg)); }
-  .pill-warning { background: color-mix(in oklab, var(--warning) 22%, transparent); color: color-mix(in oklab, var(--warning) 60%, var(--fg)); }
-  .pill-danger { background: color-mix(in oklab, var(--danger) 16%, transparent); color: var(--danger); }
+  .pill-success { background: color-mix(in oklab, var(--success) 14%, transparent); color: var(--success-ink); }
+  .pill-warning { background: color-mix(in oklab, var(--warning) 20%, transparent); color: var(--warning-ink); }
+  .pill-danger { background: color-mix(in oklab, var(--danger) 13%, transparent); color: var(--danger-ink); }
   .pill-muted { background: color-mix(in oklab, var(--fg) 6%, transparent); color: var(--fg-muted); }
 
   /* ───────────────────────────── misc ───────────────────────────── */
