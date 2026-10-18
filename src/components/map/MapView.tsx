@@ -20,7 +20,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { LatLng, Polyline } from "@/lib/types";
 import { cn } from "@/components/ui/cn";
 import { CITY_LABELS, cityStyle, loadCityData, type MapTheme } from "./city";
-import { carElement, cometGradient, distM, easeOutCubic, enhanceRealTiles, installOverlays, radarElement, setCarHeading, setHeat, setLine, setTraffic, setTrafficTiles, sliceLine } from "./fx";
+import { carElement, cometGradient, distM, easeOutCubic, enhanceRealTiles, installOverlays, radarElement, setCarHeading, setHeat, setLine, setTraffic, setTrafficTiles, sliceLine, buildingDepth } from "./fx";
 import { useMapConfig } from "@/lib/map-config";
 import type { TrafficSegment } from "@/lib/traffic";
 
@@ -300,6 +300,7 @@ export function MapView({
         applyRouteStyle(map, routeStyleRef.current);
         setTraffic(map, trafficRef.current.segments);
         setHeat(map, trafficRef.current.heat);
+        buildingDepth(map);
         if (!usingCity) setTrafficTiles(map, trafficRef.current.tiles);
       } catch (err) {
         console.warn("[map] overlay install failed", err);
@@ -324,6 +325,11 @@ export function MapView({
     };
     setBand();
     map.on("zoom", setBand);
+    let depthRaf = 0;
+    map.on("pitch", () => {
+      cancelAnimationFrame(depthRaf);
+      depthRaf = requestAnimationFrame(() => buildingDepth(map));
+    });
     const ro = new ResizeObserver(() => map.resize());
     ro.observe(containerRef.current);
     const markerStore = markerRefs.current;

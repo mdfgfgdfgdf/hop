@@ -129,7 +129,14 @@ add("beach", { type: "Polygon", coordinates: [beach] });
 // ── procedural street grid (straight lines clipped to land; only run endpoints are stored) ──
 const ZONE = { minLat: 31.985, maxLat: 32.165, maxLng: 34.875 };
 const inZone = ([lng, lat]) => lat > ZONE.minLat && lat < ZONE.maxLat && lng < ZONE.maxLng;
-const SP = 130;
+// Irregular street spacing (real blocks are not a perfect lattice).
+const linesBetween = (from, to) => {
+  const out = [];
+  for (let x = from; x <= to; x += 95 + rand() * 80) out.push(Math.round(x));
+  return out;
+};
+const US = linesBetween(-7800, 7800);
+const VS = linesBetween(-11200, 11200);
 const keep = (ll) => inZone(ll) && onLand(ll[0], ll[1]) && !inPark(ll) && !nearRiver(ll, 35);
 let roadCount = 0;
 function gridLine(fixed, alongU, cls) {
@@ -141,16 +148,23 @@ function gridLine(fixed, alongU, cls) {
     }
     run = [];
   };
+  let gap = 0;
   for (let s = -11000; s <= 11000; s += 45) {
     const ll = alongU ? llFromUV(s, fixed) : llFromUV(fixed, s);
+    // Minor streets sometimes stop for a block or two (T-junctions, plazas).
+    if (gap <= 0 && cls === "minor" && rand() < 0.014) gap = 3 + Math.floor(rand() * 4);
+    if (gap > 0) {
+      gap--;
+      flush();
+      continue;
+    }
     if (keep(ll)) run.push(ll);
     else flush();
   }
   flush();
 }
-const NI = 60, NJ = 86;
-for (let i = -NI; i <= NI; i++) gridLine(i * SP, false, i % 6 === 0 ? "medium" : "minor");
-for (let j = -NJ; j <= NJ; j++) gridLine(j * SP, true, j % 6 === 0 ? "medium" : "minor");
+US.forEach((u, i) => gridLine(u, false, i % 6 === 0 ? "medium" : "minor"));
+VS.forEach((v, j) => gridLine(v, true, j % 6 === 0 ? "medium" : "minor"));
 
 for (const [cls, roads] of Object.entries(ROADS)) for (const [name, coords] of Object.entries(roads)) add("road", { type: "LineString", coordinates: coords }, { class: cls, name });
 
@@ -183,10 +197,12 @@ function put(u, v, w, d, h) {
   B.push(ll[0], ll[1], Math.round(w), Math.round(d), Math.round(h));
 }
 const ROAD_HALF = 11; // street + sidewalk, from the block edge
-for (let i = -NI; i < NI; i++) {
-  for (let j = -NJ; j < NJ; j++) {
-    const cu = i * SP + SP / 2;
-    const cv = j * SP + SP / 2;
+for (let i = 0; i + 1 < US.length; i++) {
+  for (let j = 0; j + 1 < VS.length; j++) {
+    const cu = (US[i] + US[i + 1]) / 2;
+    const cv = (VS[j] + VS[j + 1]) / 2;
+    const sideU = US[i + 1] - US[i] - ROAD_HALF * 2;
+    const sideV = VS[j + 1] - VS[j] - ROAD_HALF * 2;
     const c = llFromUV(cu, cv);
     if (!okSpot(c)) continue;
     const [cx, cy] = toXY(c[1], c[0]);
@@ -208,16 +224,18 @@ for (let i = -NI; i < NI; i++) {
     }
     // Perimeter block: buildings line the four streets around a courtyard.
     const keepP = dist < 3200 ? 0.85 : dist < 6000 ? 0.3 : 0.07;
-    const side = SP - ROAD_HALF * 2;
     for (let sIdx = 0; sIdx < 4; sIdx++) {
-      let t = -side / 2 + 2;
-      while (t < side / 2 - 12) {
+      // Sides 0/2 run along u (length sideU), sides 1/3 along v.
+      const len = sIdx % 2 === 0 ? sideU : sideV;
+      const across = sIdx % 2 === 0 ? sideV : sideU;
+      let t = -len / 2 + 2;
+      while (t < len / 2 - 12) {
         const w = 13 + rand() * 11;
-        const d = 13 + rand() * 9;
-        if (t + w > side / 2) break;
+        const d = Math.min(13 + rand() * 9, across / 2 - 4);
+        if (t + w > len / 2 || d < 8) break;
         if (rand() < keepP) {
           const along = t + w / 2;
-          const inward = side / 2 - d / 2 - 1.5;
+          const inward = across / 2 - d / 2 - 1.5;
           let u = 0, v = 0, bw = w, bd = d;
           if (sIdx === 0) { u = along; v = -inward; }
           else if (sIdx === 1) { u = inward; v = along; bw = d; bd = w; }

@@ -30,24 +30,25 @@ type Palette = {
 };
 
 const PALETTES: Record<MapTheme, Palette> = {
+  // Muted, neutral basemap colours (close to common light basemaps).
   light: {
-    land: "#eef1f6",
-    sea: "#cddcff",
-    seaEdge: "#b7cbff",
-    beach: "#f4efe3",
-    park: "#d7eedd",
-    parkEdge: "#c3e3cc",
-    river: "#bcd0ff",
-    casing: "#dde2eb",
+    land: "#f3f4f6",
+    sea: "#d2deec",
+    seaEdge: "#c3d2e4",
+    beach: "#f1ede4",
+    park: "#e1ebda",
+    parkEdge: "#d3e1ca",
+    river: "#cbd9ea",
+    casing: "#e1e3e8",
     road: "#ffffff",
     highway: "#ffffff",
-    highwayCasing: "#c4cfee",
-    buildingLow: "#f3f5f9",
-    buildingMid: "#e2e7f2",
-    buildingHigh: "#bccbf4",
-    sky: "#cfdcff",
-    horizon: "#eef2fb",
-    fog: "#eef1f6",
+    highwayCasing: "#d3d7df",
+    buildingLow: "#e8eaee",
+    buildingMid: "#e0e3e8",
+    buildingHigh: "#d4d8e0",
+    sky: "#e7ecf3",
+    horizon: "#f3f4f6",
+    fog: "#f3f4f6",
   },
   dark: {
     land: "#141820",
@@ -137,7 +138,7 @@ export function cityStyle(theme: MapTheme): StyleSpecification {
     sources: {
       city: { type: "geojson", data: EMPTY, attribution: CITY_ATTRIBUTION },
     },
-    light: { anchor: "viewport", color: theme === "dark" ? "#ffffff" : "#eef3ff", intensity: theme === "dark" ? 0.25 : 0.3, position: [1.4, 210, 40] },
+    light: { anchor: "viewport", color: "#ffffff", intensity: theme === "dark" ? 0.25 : 0.2, position: [1.4, 210, 40] },
     sky: {
       "sky-color": p.sky,
       "horizon-color": p.horizon,
@@ -208,6 +209,15 @@ export function cityStyle(theme: MapTheme): StyleSpecification {
         layout: { "line-cap": "round", "line-join": "round" },
         paint: { "line-color": p.highway, "line-width": w([8, 1], [16, 15], [18, 28]) },
       },
+      // Flat footprints at street zoom; the extrusion below fades in only when the camera tilts.
+      {
+        id: "city-buildings-flat",
+        type: "fill",
+        source: "city",
+        filter: kind("building"),
+        minzoom: 14,
+        paint: { "fill-color": p.buildingLow, "fill-outline-color": theme === "dark" ? "#2a3040" : "#d9dce2", "fill-opacity": ["interpolate", ["linear"], ["zoom"], 14, 0, 14.6, 1] },
+      },
       {
         id: "city-buildings",
         type: "fill-extrusion",
@@ -218,7 +228,7 @@ export function cityStyle(theme: MapTheme): StyleSpecification {
           "fill-extrusion-color": ["interpolate", ["linear"], ["get", "h"], 0, p.buildingLow, 30, p.buildingMid, 140, p.buildingHigh],
           "fill-extrusion-height": ["interpolate", ["linear"], ["zoom"], 13, 0, 14.2, ["get", "h"]],
           "fill-extrusion-base": 0,
-          "fill-extrusion-opacity": 0.92,
+          "fill-extrusion-opacity": 0, // set from the camera pitch (see buildingDepth in fx.ts)
           "fill-extrusion-vertical-gradient": true,
         },
       },

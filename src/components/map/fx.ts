@@ -246,6 +246,19 @@ export function radarElement(size: number) {
   return el;
 }
 
+/** 3D buildings only when the camera is tilted; flat footprints read as a normal map. */
+export function buildingDepth(map: MLMap) {
+  const pitch = map.getPitch();
+  const opacity = pitch < 12 ? 0 : Math.min(0.9, ((pitch - 12) / 24) * 0.9);
+  for (const id of ["city-buildings", "hop-3d-buildings"]) {
+    try {
+      if (map.getLayer(id) && map.getPaintProperty(id, "fill-extrusion-opacity") !== opacity) map.setPaintProperty(id, "fill-extrusion-opacity", opacity);
+    } catch {
+      /* style swapping */
+    }
+  }
+}
+
 // ───────────────────────── real tiles upgrade ─────────────────────────
 
 /**
@@ -260,10 +273,10 @@ export function enhanceRealTiles(map: MLMap, theme: "light" | "dark") {
   for (const layer of style.layers) {
     try {
       if (layer.type === "symbol" && !firstSymbol) firstSymbol = layer.id;
-      if (layer.type === "background") map.setPaintProperty(layer.id, "background-color", dark ? "#141820" : "#eef1f6");
-      else if (layer.type === "fill" && /water|ocean|sea/i.test(layer.id)) map.setPaintProperty(layer.id, "fill-color", dark ? "#0e1a36" : "#cddcff");
-      else if (layer.type === "fill" && /park|wood|grass|forest|landcover|cemetery|pitch/i.test(layer.id)) map.setPaintProperty(layer.id, "fill-color", dark ? "#13251c" : "#d7eedd");
-      else if (layer.type === "line" && /waterway|river/i.test(layer.id)) map.setPaintProperty(layer.id, "line-color", dark ? "#173064" : "#bcd0ff");
+      if (layer.type === "background") map.setPaintProperty(layer.id, "background-color", dark ? "#141820" : "#f3f4f6");
+      else if (layer.type === "fill" && /water|ocean|sea/i.test(layer.id)) map.setPaintProperty(layer.id, "fill-color", dark ? "#0e1a36" : "#d2deec");
+      else if (layer.type === "fill" && /park|wood|grass|forest|landcover|cemetery|pitch/i.test(layer.id)) map.setPaintProperty(layer.id, "fill-color", dark ? "#13251c" : "#e1ebda");
+      else if (layer.type === "line" && /waterway|river/i.test(layer.id)) map.setPaintProperty(layer.id, "line-color", dark ? "#173064" : "#cbd9ea");
     } catch {
       /* layer without that property */
     }
@@ -279,15 +292,15 @@ export function enhanceRealTiles(map: MLMap, theme: "light" | "dark") {
         "source-layer": "building",
         minzoom: 13.5,
         paint: {
-          "fill-extrusion-color": ["interpolate", ["linear"], ["coalesce", ["get", "render_height"], 8], 0, dark ? "#1d222e" : "#e4e8f0", 30, dark ? "#252c3e" : "#d3daea", 140, dark ? "#2f3f74" : "#b4c3ef"],
+          "fill-extrusion-color": ["interpolate", ["linear"], ["coalesce", ["get", "render_height"], 8], 0, dark ? "#1d222e" : "#e8eaee", 30, dark ? "#252c3e" : "#e0e3e8", 140, dark ? "#2f3f74" : "#d4d8e0"],
           "fill-extrusion-height": ["interpolate", ["linear"], ["zoom"], 13.5, 0, 14.6, ["coalesce", ["get", "render_height"], 8]],
           "fill-extrusion-base": ["coalesce", ["get", "render_min_height"], 0],
-          "fill-extrusion-opacity": 0.9,
+          "fill-extrusion-opacity": 0, // follows the camera pitch (buildingDepth)
         },
       },
       firstSymbol,
     );
-    map.setLight({ anchor: "viewport", color: "#ffffff", intensity: dark ? 0.25 : 0.42, position: [1.3, 210, 35] });
+    map.setLight({ anchor: "viewport", color: "#ffffff", intensity: dark ? 0.25 : 0.2, position: [1.4, 210, 40] });
   } catch {
     /* style without a building layer */
   }
