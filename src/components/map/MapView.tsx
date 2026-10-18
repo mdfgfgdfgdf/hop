@@ -20,7 +20,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { LatLng, Polyline } from "@/lib/types";
 import { cn } from "@/components/ui/cn";
 import { CITY_LABELS, cityStyle, loadCityData, type MapTheme } from "./city";
-import { carElement, cometGradient, distM, easeOutCubic, enhanceRealTiles, installOverlays, radarElement, setCarHeading, setLine, setTraffic, setTrafficTiles, sliceLine } from "./fx";
+import { carElement, cometGradient, distM, easeOutCubic, enhanceRealTiles, installOverlays, radarElement, setCarHeading, setHeat, setLine, setTraffic, setTrafficTiles, sliceLine } from "./fx";
 import { useMapConfig } from "@/lib/map-config";
 import type { TrafficSegment } from "@/lib/traffic";
 
@@ -57,6 +57,16 @@ function safePadding(map: MLMap, padding: { top: number; bottom: number; left: n
   };
 }
 
+/** WebGL is required by MapLibre; some locked-down or very old devices lack it. */
+function supportsWebGL() {
+  try {
+    const c = document.createElement("canvas");
+    return !!(c.getContext("webgl2") || c.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export type MapMarker = {
@@ -80,6 +90,8 @@ type Props = {
   polyline?: Polyline | null;
   /** Congested stretches drawn over the route (see trafficSegments in @/lib/traffic). */
   traffic?: TrafficSegment[] | null;
+  /** Demand heat points (e.g. GET /api/driver/demand cells; weight = requests). */
+  heat?: { lat: number; lng: number; weight: number }[] | null;
   /** Live traffic overlay for the whole map, when the server has a traffic provider. */
   trafficTiles?: boolean;
   /** `trip`: glowing route with a travelling light. `guide`: dashed straight hint (e.g. driver → pickup). */
@@ -161,6 +173,7 @@ export function MapView({
   markers = [],
   polyline,
   traffic,
+  heat,
   trafficTiles = false,
   routeStyle = "trip",
   drawRoute = true,
@@ -191,13 +204,15 @@ export function MapView({
   const trailFlush = useRef(0);
   const cameraRef = useRef({ pitch, bearing });
   const routeStyleRef = useRef(routeStyle);
-  const trafficRef = useRef<{ segments: TrafficSegment[] | null | undefined; tiles: boolean }>({ segments: null, tiles: false });
+  const trafficRef = useRef<{ segments: TrafficSegment[] | null | undefined; tiles: boolean; heat: Props["heat"] }>({ segments: null, tiles: false, heat: null });
   const [ready, setReady] = useState(false);
   const mapConfig = useMapConfig();
   // Real vector tiles by default (OpenFreeMap "positron": light, no key).
   // Set NEXT_PUBLIC_MAP_STYLE_URL="" to always use HOP City.
   const styleUrl = process.env.NEXT_PUBLIC_MAP_STYLE_URL ?? DEFAULT_STYLE_URL;
   const [offline, setOffline] = useState(!styleUrl);
+  // Client-only module (dynamic import, ssr: false), so reading the DOM here is safe.
+  const [failed, setFailed] = useState(() => !supportsWebGL());
   const emitMoveEnd = useEffectEvent((c: LatLng, z: number) => onMoveEnd?.(c, z));
   const emitMoveStart = useEffectEvent(() => onMoveStart?.());
   const emitReady = useEffectEvent((m: MLMap) => onReady?.(m));
@@ -209,35 +224,43 @@ export function MapView({
   useEffect(() => {
     cameraRef.current = { pitch, bearing };
     routeStyleRef.current = routeStyle;
-    trafficRef.current = { segments: traffic, tiles: showTrafficTiles };
+    trafficRef.current = { segments: traffic, tiles: showTrafficTiles, heat };
   });
 
   // ── map lifecycle ──
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (!containerRef.current || mapRef.current || failed) return;
     const city = () => cityStyle(theme);
     const fillCity = () =>
       loadCityData(new URL(CITY_DATA_PATH, window.location.origin).href)
         .then((fc) => (map.getSource("city") as GeoJSONSource | undefined)?.setData(fc))
         .catch((err) => console.warn("[map] city data unavailable", err));
-    const map = new MLMap({
-      container: containerRef.current,
-      style: styleUrl || city(),
-      center: [initialCenter.lng, initialCenter.lat],
-      zoom,
-      pitch,
-      bearing,
-      maxPitch: 70,
-      attributionControl: { compact: true },
-      interactive,
-      pitchWithRotate: false,
-      dragRotate: false,
-      touchPitch: false,
-      maxZoom: 18.5,
-      minZoom: 8,
-      fadeDuration: 150,
-      canvasContextAttributes: { antialias: true },
-    });
+    let map: MLMap;
+    try {
+      map = new MLMap({
+        container: containerRef.current,
+        style: styleUrl || city(),
+        center: [initialCenter.lng, initialCenter.lat],
+        zoom,
+        pitch,
+        bearing,
+        maxPitch: 70,
+        attributionControl: { compact: true },
+        interactive,
+        pitchWithRotate: false,
+        dragRotate: false,
+        touchPitch: false,
+        maxZoom: 18.5,
+        minZoom: 8,
+        fadeDuration: 150,
+        canvasContextAttributes: { antialias: true },
+      });
+    } catch (err) {
+      // No WebGL context (or MapLibre refused it): keep the page usable without a map.
+      console.warn("[map] could not start", err);
+      const t = window.setTimeout(() => setFailed(true), 0);
+      return () => window.clearTimeout(t);
+    }
     map.touchZoomRotate.disableRotation();
     mapRef.current = map;
     if (process.env.NODE_ENV !== "production") (window as unknown as { __hopMap?: MLMap }).__hopMap = map;
@@ -276,6 +299,7 @@ export function MapView({
         installOverlays(map, routeRef.current, trailRef.current.length > 1 ? trailRef.current : null);
         applyRouteStyle(map, routeStyleRef.current);
         setTraffic(map, trafficRef.current.segments);
+        setHeat(map, trafficRef.current.heat);
         if (!usingCity) setTrafficTiles(map, trafficRef.current.tiles);
       } catch (err) {
         console.warn("[map] overlay install failed", err);
@@ -315,7 +339,7 @@ export function MapView({
       labelRefs.current = [];
       radarRef.current = null;
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [failed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── camera: centre ──
   useEffect(() => {
@@ -494,6 +518,17 @@ export function MapView({
     }
   }, [showTrafficTiles, ready]);
 
+  // ── demand heat ──
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    try {
+      setHeat(map, heat);
+    } catch {
+      /* style swapping */
+    }
+  }, [heat, ready]);
+
   // ── route: style + travelling light ──
   useEffect(() => {
     const map = mapRef.current;
@@ -595,6 +630,11 @@ export function MapView({
   return (
     <div ref={wrapRef} className={cn("hop-map relative h-full w-full overflow-hidden", className)} data-map-offline={offline || undefined} data-map-theme={theme}>
       <div ref={containerRef} className="hop-map-container absolute inset-0" style={{ position: "absolute", inset: 0 }} />
+      {failed && (
+        <div className="hop-map-unavailable absolute inset-0 grid place-items-center p-6 text-center" role="note">
+          <p className="max-w-[260px] text-sm font-semibold text-ink-500">המפה אינה זמינה במכשיר הזה. אפשר להמשיך להזמין ולעקוב אחרי הנסיעה.</p>
+        </div>
+      )}
       {children}
     </div>
   );

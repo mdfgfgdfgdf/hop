@@ -701,6 +701,10 @@
   box-shadow: 0 0 0 7px rgba(36, 87, 255, 0.16), 0 6px 14px -4px rgba(36, 87, 255, 0.6);
 }
 
+.hop-map-unavailable {
+  background: radial-gradient(120% 80% at 70% 0%, #e6edff, transparent 60%), linear-gradient(180deg, #f4f6fa, #eaeef6);
+}
+
 /* Top-view car: rotates the short way round, glides (JS), sits on a soft shadow + brand halo. */
 .hop-car {
   position: relative;

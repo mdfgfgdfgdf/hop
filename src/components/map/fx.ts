@@ -91,6 +91,37 @@ export function setTraffic(map: MLMap, segments: TrafficSegment[] | null | undef
   });
 }
 
+/** Demand heat (e.g. recent ride requests), drawn under the route. */
+export function setHeat(map: MLMap, points: { lat: number; lng: number; weight: number }[] | null | undefined) {
+  const data = {
+    type: "FeatureCollection" as const,
+    features: (points ?? []).map((p) => ({ type: "Feature" as const, properties: { w: p.weight }, geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] } })),
+  };
+  const src = map.getSource("hop-heat") as GeoJSONSource | undefined;
+  if (src) {
+    src.setData(data);
+    return;
+  }
+  if (!points?.length) return;
+  map.addSource("hop-heat", { type: "geojson", data });
+  map.addLayer(
+    {
+      id: "hop-heat",
+      type: "heatmap",
+      source: "hop-heat",
+      maxzoom: 17,
+      paint: {
+        "heatmap-weight": ["interpolate", ["linear"], ["get", "w"], 0, 0, 10, 1],
+        "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 10, 0.8, 15, 2],
+        "heatmap-radius": ["interpolate", ["exponential", 2], ["zoom"], 10, 18, 15, 70, 17, 140],
+        "heatmap-opacity": 0.75,
+        "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(36,87,255,0)", 0.25, "rgba(120,150,255,0.35)", 0.5, "rgba(36,87,255,0.55)", 0.8, "rgba(245,159,10,0.65)", 1, "rgba(229,72,77,0.75)"],
+      },
+    },
+    map.getLayer("hop-route-glow") ? "hop-route-glow" : undefined,
+  );
+}
+
 /** Live traffic overlay tiles (served by /api/map/traffic), under labels and the route. */
 export function setTrafficTiles(map: MLMap, on: boolean) {
   const has = !!map.getLayer("hop-traffic-tiles");
