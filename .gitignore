@@ -47,3 +47,6 @@ next-env.d.ts
 /playwright-report/
 /test-results/
 /tests/e2e/.auth/
+
+# agent worktrees (local only)
+.claude/worktrees/
