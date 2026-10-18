@@ -67,7 +67,7 @@ header .btn{padding:11px 20px;font-size:15px}
 .hero h1 .ln{display:block}
 
 /* phone shell + screens */
-.phone{width:min(290px,64vw);aspect-ratio:9/19;background:var(--ink);border-radius:46px;padding:11px;box-shadow:18px 22px 0 rgba(17,19,24,.12),0 40px 70px -30px rgba(17,19,24,.5)}
+.phone{width:min(290px,64vw);aspect-ratio:9/19;background:var(--ink);border-radius:46px;padding:11px;box-shadow:0 50px 80px -30px rgba(17,19,24,.45),0 0 0 1px rgba(17,19,24,.06)}
 .scr{position:relative;height:100%;border-radius:36px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
 .island{position:absolute;top:9px;left:50%;translate:-50% 0;width:86px;height:24px;background:var(--ink);border-radius:20px;z-index:3}
 .st{display:flex;justify-content:space-between;padding:12px 24px 0;font:800 12px var(--body);direction:ltr;position:relative;z-index:2}
@@ -191,6 +191,84 @@ footer ul{list-style:none;padding:0;margin:0;display:grid;gap:10px;color:var(--m
 footer a{color:inherit;text-decoration:none}footer a:hover{color:#fff}
 .copy{text-align:center;color:#7d8291;font-size:14px;padding-block:0 40px}
 @media (max-width:820px){footer.dark .wrap{grid-template-columns:1fr 1fr}footer.dark .wrap>div:first-child{grid-column:1/-1}}
+/* v5 overrides: split hero, calculator, two-column feature cards */
+.hero{padding:0;position:relative;overflow:hidden;background:#fff}
+.hero .glow{position:absolute;inset:-20% -10% auto auto;width:70%;aspect-ratio:1;background:radial-gradient(closest-side,rgba(36,87,255,.16),transparent);pointer-events:none;left:-10%;right:auto;top:-10%}
+.hero::after{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:56px 56px;mask:linear-gradient(180deg,#000,transparent 85%);-webkit-mask:linear-gradient(180deg,#000,transparent 85%);opacity:.55;pointer-events:none}
+.hgrid{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding-block:64px 90px}
+.htext{text-align:right}
+.htext .form{justify-content:flex-start}
+.htext .meta{justify-content:flex-start}
+.badge{display:inline-flex;align-items:center;gap:10px;font:700 14px var(--body);color:var(--ink);background:#fff;border:1.5px solid var(--line);padding:8px 14px;border-radius:999px}
+.badge i{width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 0 rgba(36,87,255,.5);animation:ping 1.8s infinite}
+@keyframes ping{70%{box-shadow:0 0 0 10px rgba(36,87,255,0)}100%{box-shadow:0 0 0 0 rgba(36,87,255,0)}}
+.hero h1{font-size:clamp(50px,7vw,100px)}
+.hvis{position:relative;display:grid;place-items:center;min-height:620px}
+.hp{width:min(300px,70vw);transform:translateY(calc(var(--hs,0) * -50px)) rotate(calc(var(--hs,0) * -4deg));position:relative;z-index:2}
+.ring{position:absolute;border-radius:50%;border:1.5px dashed rgba(36,87,255,.35)}
+.r1{width:520px;height:520px}.r2{width:380px;height:380px;border-style:solid;border-color:rgba(36,87,255,.12);background:rgba(36,87,255,.05)}
+.fl{position:absolute;z-index:3;display:flex;gap:12px;align-items:center;background:#fff;border-radius:18px;padding:12px 16px 12px 14px;box-shadow:0 20px 40px -18px rgba(17,19,24,.35),0 0 0 1px var(--line)}
+.fl .d{width:40px;height:40px;border-radius:12px;background:var(--blue);color:#fff;display:grid;place-items:center}
+.fl .d.k{background:#eef0f4;color:var(--muted)}
+.fl .d svg{width:20px;height:20px}
+.fl small{display:block;color:var(--muted);font-weight:600;font-size:13px;line-height:1.2}
+.fl b{font:900 22px/1.1 var(--display);color:var(--blue)}
+.fl b.x{color:#e5484d;text-decoration:line-through;text-decoration-thickness:2px}
+.f1{top:14%;right:-2%}.f2{top:46%;left:-4%}.f3{bottom:2%;right:-6%}
+.fl{transform:translateY(calc(var(--hs,0) * var(--sp,-30px)))}
+.f1{--sp:-70px}.f2{--sp:-20px}.f3{--sp:-110px}
+@media (prefers-reduced-motion:no-preference){
+  .draw{stroke-dasharray:420;stroke-dashoffset:420;animation:draw 2s .5s ease-out forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .fl{animation:pop .7s cubic-bezier(.2,1.4,.4,1) both}.f1{animation-delay:.6s}.f2{animation-delay:.8s}.f3{animation-delay:1s}
+  @keyframes pop{from{scale:.6}}
+  .hvis{animation:rise 1s .2s cubic-bezier(.2,.8,.2,1) both}
+}
+@media (max-width:900px){
+  .hgrid{grid-template-columns:1fr;padding-block:40px 60px}
+  .htext{text-align:center;display:flex;flex-direction:column;align-items:center}
+  .htext .form,.htext .meta{justify-content:center}
+  .hvis{min-height:520px}.r1{width:360px;height:360px}.r2{width:270px;height:270px}
+  .hp{width:min(240px,62vw)}
+  .f1{right:0}.f2{left:0}.f3{right:0;bottom:0}
+}
+
+/* calculator */
+.calc{background:var(--paper)}
+.calcbox{margin-top:48px;width:100%;max-width:760px;background:#fff;border-radius:28px;padding:36px;box-shadow:0 30px 60px -40px rgba(17,19,24,.35),0 0 0 1px var(--line);text-align:right}
+.kmlbl{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;color:var(--muted)}
+.kmlbl b{font:900 34px var(--display);color:var(--ink)}
+input[type=range]{width:100%;margin:18px 0 30px;-webkit-appearance:none;appearance:none;height:10px;border-radius:10px;background:linear-gradient(to left,var(--blue) var(--v,17%),#e7e9ef var(--v,17%));direction:rtl;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:#fff;border:4px solid var(--blue);box-shadow:0 6px 14px -4px rgba(36,87,255,.6)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:4px solid var(--blue)}
+.bars{display:grid;gap:16px}
+.bar{display:grid;grid-template-columns:110px 1fr 80px;gap:16px;align-items:center}
+.bar .lbl{font-weight:800}
+.track{height:44px;background:#f2f3f6;border-radius:12px;overflow:hidden}
+.track i{display:block;height:100%;border-radius:12px;transition:width .35s cubic-bezier(.2,.8,.2,1)}
+.bar.taxi i{background:#c9ccd6}
+.bar.hop i{background:var(--blue)}
+.bar b{font:900 28px var(--display);font-variant-numeric:tabular-nums;text-align:left}
+.bar.hop b{color:var(--blue)}
+.saveline{margin-top:26px;padding-top:22px;border-top:1.5px dashed var(--line);display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;font-weight:600;color:var(--muted)}
+.saveline b{font:900 24px var(--display);color:var(--blue)}
+@media (max-width:600px){.calcbox{padding:24px}.bar{grid-template-columns:80px 1fr 58px;gap:10px}.bar b{font-size:20px}}
+
+/* feature cards: text + phone inside the card */
+.feature{padding-top:28px}
+#features{padding-block:60px 100px}
+.fcard{display:grid;grid-template-columns:1fr 1fr;align-items:center;height:auto;min-height:0;padding:56px 64px;margin-top:0;gap:30px}
+.fcard .ftext{color:#fff;text-align:right}
+.fcard .num{position:static;display:inline-block;font:900 15px var(--display);background:rgba(255,255,255,.16);padding:6px 12px;border-radius:999px;margin-bottom:18px}
+.fcard .eyebrow{display:block;color:rgba(255,255,255,.75)}
+.fcard h2{font-size:clamp(34px,4vw,54px)}
+.fcard h2 .b{color:inherit;opacity:.6}
+.fcard .sub{color:rgba(255,255,255,.8)}
+.fcard .fvis{display:grid;place-items:center;height:560px;position:relative}
+.fcard .fvis::before{content:"";position:absolute;width:420px;height:420px;border-radius:50%;background:rgba(255,255,255,.08)}
+.fcard .phone{width:260px;position:relative;box-shadow:0 40px 60px -30px rgba(0,0,0,.6)}
+@media (max-width:900px){.fcard{grid-template-columns:1fr;padding:40px 24px 0;text-align:center}.fcard .ftext{text-align:center}.fcard .fvis{height:440px;overflow:hidden;align-items:start}.fcard .fvis::before{width:300px;height:300px;top:40px}.fcard .phone{width:230px}}
+
 </style>
 
 <div class="progress" aria-hidden="true"></div>
@@ -201,80 +279,79 @@ footer a{color:inherit;text-decoration:none}footer a:hover{color:#fff}
   <a class="btn" href="#join">הצטרפו לרשימה</a>
 </div></header>
 
-<section class="hero" id="top"><div class="wrap center">
-  <span class="eyebrow">נסיעות עירוניות במחיר הוגן · עולים לאוויר בתל אביב</span>
-  <h1><span class="ln">בואו נשנה</span><span class="ln b">את המחירים.</span></h1>
-  <p class="sub">למה לשלם על מונית כמו על ארוחה? ב-hop רואים מחיר קבוע לפני שיוצאים, משלמים בדיוק אותו, וחוסכים עד חצי.</p>
-  <form class="form" id="f1" novalidate>
-    <input id="email1" type="email" required placeholder="you@email.com" aria-label="כתובת אימייל" autocomplete="email">
-    <button class="btn" type="submit">שמרו לי מקום <svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
-  </form>
-  <p class="note" id="n1" role="status"></p>
-  <div class="meta"><span>הרשמה חינם</span><i></i><span>iPhone ו-Android</span><i></i><span>בלי ספאם</span></div>
-
-  <div class="duo" aria-hidden="true">
-    <div class="phone p1"><div class="scr">
-      <div class="island"></div><div class="st"><span>9:41</span><span>●●● ▮</span></div>
-      <div class="map"><svg viewBox="0 0 300 400" preserveAspectRatio="none"><path d="M70 80 L95 150 L170 162 L176 262 L236 300" fill="none" stroke="#2457FF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="70" cy="80" r="11" fill="#2457FF" stroke="#fff" stroke-width="4"/><circle cx="236" cy="300" r="11" fill="#111318" stroke="#fff" stroke-width="4"/></svg></div>
-      <div class="sheet"><div class="grab"></div><b>לאן?</b><div class="pill"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>מצאו נסיעה</div><div class="eta"><span>hop · 4 דק׳ ממך</span><strong>₪29</strong></div></div>
-    </div></div>
-    <div class="phone p2"><div class="scr">
-      <div class="island"></div><div class="st"><span>9:41</span><span>●●● ▮</span></div>
-      <div class="ui">
-        <h4>הנסיעה שלך</h4>
-        <div class="box"><small>רוטשילד ← נמל ת״א</small><div class="big">₪29</div><div class="lock"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>מחיר נעול</div></div>
-        <div class="tiles"><div class="tile" style="background:var(--blue)">הזמנה<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div><div class="tile" style="background:var(--ink)">שיתוף<svg class="i" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></div><div class="tile" style="background:#8a90a0">עצירה<svg class="i" viewBox="0 0 24 24"><path d="M12 22s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12z"/></svg></div></div>
-        <div class="box"><div class="rowx"><span>מונית רגילה</span><span style="text-decoration:line-through;color:#e5484d">₪58</span></div><div class="rowx"><span>חסכת</span><b style="color:var(--blue)">₪29</b></div></div>
-      </div>
-    </div></div>
+<section class="hero" id="top">
+  <div class="glow" aria-hidden="true"></div>
+  <div class="wrap hgrid">
+    <div class="htext">
+      <span class="badge"><i></i>עולים לאוויר בתל אביב · 2026</span>
+      <h1><span class="ln">בואו נשנה</span><span class="ln b">את המחירים.</span></h1>
+      <p class="sub">למה לשלם על מונית כמו על ארוחה? ב-hop רואים מחיר קבוע לפני שיוצאים, משלמים בדיוק אותו, וחוסכים עד חצי.</p>
+      <form class="form" id="f1" novalidate>
+        <input id="email1" type="email" required placeholder="you@email.com" aria-label="כתובת אימייל" autocomplete="email">
+        <button class="btn" type="submit">שמרו לי מקום <svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+      </form>
+      <p class="note" id="n1" role="status"></p>
+      <div class="meta"><span>הרשמה חינם</span><i></i><span>iPhone ו-Android</span><i></i><span>בלי ספאם</span></div>
+    </div>
+    <div class="hvis" aria-hidden="true">
+      <div class="ring r1"></div><div class="ring r2"></div>
+      <div class="phone hp"><div class="scr">
+        <div class="island"></div><div class="st"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="map"><svg viewBox="0 0 300 400" preserveAspectRatio="none"><path class="draw" d="M70 80 L95 150 L170 162 L176 262 L236 300" fill="none" stroke="#2457FF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="70" cy="80" r="11" fill="#2457FF" stroke="#fff" stroke-width="4"/><circle cx="236" cy="300" r="11" fill="#111318" stroke="#fff" stroke-width="4"/></svg></div>
+        <div class="sheet"><div class="grab"></div><b>לאן?</b><div class="pill"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>מצאו נסיעה</div><div class="eta"><span>hop · 4 דק׳ ממך</span><strong>₪29</strong></div></div>
+      </div></div>
+      <div class="fl f1"><span class="d"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><span><small>מחיר נעול</small><b>₪29</b></span></div>
+      <div class="fl f2"><span class="d k"><svg class="i" viewBox="0 0 24 24"><path d="M5 17h14l-1.5-6a2 2 0 0 0-2-1.5h-7a2 2 0 0 0-2 1.5z"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg></span><span><small>מונית רגילה</small><b class="x">₪58</b></span></div>
+      <div class="fl f3"><span class="d"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span><span><small>הנהג בדרך</small><b>3 דק׳</b></span></div>
+    </div>
   </div>
-</div></section>
+</section>
 
 <section class="band" id="price"><div class="wrap">
   <div><span class="eyebrow">השאלה שכולם שואלים</span><h2>למה לשלם על מונית, כשאפשר לשלם חצי?</h2></div>
   <a href="#ride">ראו את ההשוואה <svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
 </div></section>
 
-<section class="sec"><div class="wrap center rv">
-  <span class="eyebrow">משנים את חוקי המשחק</span>
-  <h2>לא עוד מונה רץ.<br><span class="b">מחיר אחד. קבוע.</span></h2>
-  <p class="sub">hop מחברת בין נהגים בעיר לבין נוסעים שנמאס להם לנחש כמה זה יעלה. אתם רואים את המחיר, מאשרים, ונוסעים.</p>
+<section class="sec calc" id="calc"><div class="wrap center">
+  <span class="eyebrow">מחשבון חיסכון</span>
+  <h2>כמה עולה לכם <span class="b">המונה?</span></h2>
+  <p class="sub">הזיזו את המרחק וראו את ההפרש. ככה זה נראה כשהמחיר הוגן.</p>
+  <div class="calcbox">
+    <label for="km" class="kmlbl"><span>מרחק נסיעה</span><b id="kmv">5 ק״מ</b></label>
+    <input type="range" id="km" min="1" max="25" value="5" step="1">
+    <div class="bars">
+      <div class="bar taxi"><span class="lbl">מונית רגילה</span><div class="track"><i id="bTaxi"></i></div><b id="pTaxi">₪66</b></div>
+      <div class="bar hop"><span class="lbl">hop</span><div class="track"><i id="bHop"></i></div><b id="pHop">₪33</b></div>
+    </div>
+    <div class="saveline">חיסכון בנסיעה <b id="pSave">₪33</b><span>·</span>בחודש (20 נסיעות) <b id="pMonth">₪660</b></div>
+  </div>
 </div></section>
 
 <div id="features">
-<section class="feature" style="padding-top:0"><div class="wrap">
-  <div class="fcard blue rv" data-lift><span class="num">01</span><span class="logo ghost" aria-hidden="true"></span>
-    <div class="phone" aria-hidden="true"><div class="scr"><div class="island"></div><div class="st"><span>9:41</span><span>●●● ▮</span></div>
+<section class="feature"><div class="wrap">
+  <div class="fcard blue rv" data-lift><div class="ftext"><span class="num">01</span><span class="eyebrow">מחיר לפני שיוצאים</span><h2>רואים כמה. <span class="b">לפני שזזים.</span></h2><p class="sub">כותבים יעד ומקבלים מחיר סופי. בלי הערכות, בלי "בערך", בלי הפתעות בסוף.</p></div><div class="fvis"><div class="phone" aria-hidden="true"><div class="scr"><div class="island"></div><div class="st"><span>9:41</span><span>●●● ▮</span></div>
       <div class="ui"><h4>לאן נוסעים?</h4>
         <div class="box"><div class="rowx"><span>● רוטשילד 22</span></div><div class="rowx"><span style="color:var(--blue)">● נמל תל אביב</span></div></div>
         <div class="box"><small>מחיר סופי</small><div class="big">₪29</div><small>4.2 ק״מ · 14 דק׳</small></div>
         <div class="pill" style="color:#fff;justify-content:center">אישור נסיעה</div>
-      </div></div></div>
-  </div>
-  <div class="center rv" style="margin-top:56px"><span class="eyebrow">מחיר לפני שיוצאים</span><h2>רואים כמה. <span class="b">לפני שזזים.</span></h2><p class="sub">כותבים יעד ומקבלים מחיר סופי. בלי הערכות, בלי "בערך", בלי הפתעות בסוף.</p></div>
+      </div></div></div></div></div>
 </div></section>
 
 <section class="feature"><div class="wrap">
-  <div class="fcard ink rv" data-lift><span class="num">02</span><span class="logo ghost" aria-hidden="true"></span>
-    <div class="phone" aria-hidden="true"><div class="scr"><div class="island"></div><div class="st"><span>9:43</span><span>●●● ▮</span></div>
+  <div class="fcard ink rv" data-lift><div class="ftext"><span class="num">02</span><span class="eyebrow">איסוף מהיר</span><h2>הנהג הקרוב. <span class="b">תוך דקות.</span></h2><p class="sub">רואים מי מגיע, באיזה רכב ומתי. משתפים את המסלול עם מי שרוצים בלחיצה.</p></div><div class="fvis"><div class="phone" aria-hidden="true"><div class="scr"><div class="island"></div><div class="st"><span>9:43</span><span>●●● ▮</span></div>
       <div class="ui"><h4>הנהג בדרך</h4>
         <div class="box driver"><span class="av">ד</span><div><b>דני · טויוטה קורולה</b><br><small>12-345-67 · <span class="stars">★★★★★</span></small></div></div>
         <div class="box"><small>מגיע בעוד</small><div class="big">3 דק׳</div></div>
         <div class="tiles"><div class="tile" style="background:var(--blue)">שיתוף<svg class="i" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></div><div class="tile" style="background:var(--ink)">הודעה<svg class="i" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="tile" style="background:#e5484d">חירום<svg class="i" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg></div></div>
-      </div></div></div>
-  </div>
-  <div class="center rv" style="margin-top:56px"><span class="eyebrow">איסוף מהיר</span><h2>הנהג הקרוב. <span class="b">תוך דקות.</span></h2><p class="sub">רואים מי מגיע, באיזה רכב ומתי. משתפים את המסלול עם מי שרוצים בלחיצה.</p></div>
+      </div></div></div></div></div>
 </div></section>
 
 <section class="feature"><div class="wrap">
-  <div class="fcard blue rv" data-lift><span class="num">03</span><span class="logo ghost" aria-hidden="true"></span>
-    <div class="phone" aria-hidden="true"><div class="scr"><div class="island"></div><div class="st"><span>9:58</span><span>●●● ▮</span></div>
+  <div class="fcard blue rv" data-lift><div class="ftext"><span class="num">03</span><span class="eyebrow">משלמים בדיוק מה שראיתם</span><h2>₪29 בהתחלה. <span class="b">₪29 בסוף.</span></h2><p class="sub">התשלום יוצא אוטומטית, והקבלה מגיעה למייל. פקק באיילון? לא העניין שלכם.</p></div><div class="fvis"><div class="phone" aria-hidden="true"><div class="scr"><div class="island"></div><div class="st"><span>9:58</span><span>●●● ▮</span></div>
       <div class="ui"><h4>הגעתם!</h4>
         <div class="box"><div class="rowx"><span>נסיעה</span><span>₪29</span></div><div class="rowx"><span>תוספת לילה</span><span>₪0</span></div><div class="rowx"><span>פקקים</span><span>₪0</span></div><div class="rowx"><b>סה״כ</b><b style="color:var(--blue)">₪29</b></div></div>
         <div class="box"><small>החודש חסכת</small><div class="big">₪412</div></div>
-      </div></div></div>
-  </div>
-  <div class="center rv" style="margin-top:56px"><span class="eyebrow">משלמים בדיוק מה שראיתם</span><h2>₪29 בהתחלה. <span class="b">₪29 בסוף.</span></h2><p class="sub">התשלום יוצא אוטומטית, והקבלה מגיעה למייל. פקק באיילון? לא העניין שלכם.</p></div>
+      </div></div></div></div></div>
 </div></section>
 </div>
 
@@ -364,12 +441,13 @@ footer a{color:inherit;text-decoration:none}footer a:hover{color:#fff}
   var stages=[].slice.call(document.querySelectorAll('.stage')), dots=[].slice.call(document.querySelectorAll('.dots i'));
   var mTaxi=document.getElementById('mTaxi'), sT=document.getElementById('sheetT'), sF=document.getElementById('sheetF'), sE=document.getElementById('sheetE');
   var rphone=ride.querySelector('.phone'), cur=-1, lifts=[].slice.call(document.querySelectorAll('[data-lift] .phone'));
+  var km=document.getElementById('km');function calc(){var k=+km.value,t=Math.round(12.1+k*10.8),h=Math.round(t*.5);document.getElementById('kmv').textContent=k+' ק״מ';document.getElementById('pTaxi').textContent='₪'+t;document.getElementById('pHop').textContent='₪'+h;document.getElementById('pSave').textContent='₪'+(t-h);document.getElementById('pMonth').textContent='₪'+(t-h)*20;var mx=Math.round(12.1+25*10.8);document.getElementById('bTaxi').style.width=(t/mx*100)+'%';document.getElementById('bHop').style.width=(h/mx*100)+'%';km.style.setProperty('--v',((k-1)/24*100)+'%');}km.addEventListener('input',calc);calc();
   var sheets=[['לאן?','מצאו נסיעה','hop · 4 דק׳ ממך'],['בדרך ליעד','שתפו מסלול','נותרו 9 דק׳'],['הגעתם!','דרגו את הנסיעה','שולם ₪29']];
   function frame(){
     var y=scrollY,max=root.scrollHeight-innerHeight;
     root.style.setProperty('--p',max>0?y/max:0);
     hdr.classList.toggle('scrolled',y>10);
-    if(!reduce)root.style.setProperty('--hs',Math.min(1,y/600));
+    if(!reduce)root.style.setProperty('--hs',Math.min(1,y/700));
     var r=ride.getBoundingClientRect(),span=ride.offsetHeight-innerHeight,p=Math.min(1,Math.max(0,-r.top/span)),t=Math.min(1,Math.max(0,(p-.1)/.78));
     route.style.strokeDashoffset=L*(1-t);
     var pt=route.getPointAtLength(L*t);car.setAttribute('transform','translate('+pt.x+','+pt.y+')');
@@ -377,7 +455,7 @@ footer a{color:inherit;text-decoration:none}footer a:hover{color:#fff}
     if(!reduce)rphone.style.setProperty('--rp',p);
     var s=p<.33?0:p<.7?1:2;
     if(s!==cur){cur=s;stages.forEach(function(e,i){e.classList.toggle('on',i===s)});dots.forEach(function(e,i){e.classList.toggle('on',i<=s)});sT.textContent=sheets[s][0];sF.textContent=sheets[s][1];sE.textContent=sheets[s][2];}
-    if(!reduce)lifts.forEach(function(ph){var b=ph.parentNode.getBoundingClientRect();var k=(b.top+b.height/2-innerHeight/2)/innerHeight;ph.style.setProperty('--lift',Math.max(-60,Math.min(140,k*160)).toFixed(1));});
+    if(!reduce)lifts.forEach(function(ph){var b=ph.parentNode.getBoundingClientRect();var k=(b.top+b.height/2-innerHeight/2)/innerHeight;ph.style.setProperty('--lift',Math.max(-40,Math.min(40,k*60)).toFixed(1));});
   }
   var tick=false;
   addEventListener('scroll',function(){if(!tick){tick=true;requestAnimationFrame(function(){frame();tick=false;});}},{passive:true});
