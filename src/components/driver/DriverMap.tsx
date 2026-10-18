@@ -1,7 +1,7 @@
 "use client";
 /**
- * Night-mode map for the driver app. Wraps the shared MapView, restyles
- * vector tiles to a dark palette (the configured style is a light one), styles
+ * Driver map. Wraps the shared MapView,
+ *
  * the route as a glowing line (dashed for the straight "guide" to pickup) and
  * drives the camera imperatively so it can follow the driver or frame a ride.
  */
@@ -37,54 +37,6 @@ type Props = {
 };
 
 const DEFAULT_CENTER = { lat: 32.0753, lng: 34.7818 };
-/** Best-effort dark palette for a light vector style (OpenMapTiles-like ids). */
-function darken(map: MLMap) {
-  const layers = map.getStyle()?.layers ?? [];
-  const set = (id: string, prop: Parameters<MLMap["setPaintProperty"]>[1], value: Parameters<MLMap["setPaintProperty"]>[2]) => {
-    try {
-      map.setPaintProperty(id, prop, value);
-    } catch {
-      /* property not applicable */
-    }
-  };
-  for (const l of layers) {
-    if (l.id.startsWith("hop-")) continue;
-    const id = l.id.toLowerCase();
-    switch (l.type) {
-      case "background":
-        set(l.id, "background-color", "#0f1219");
-        break;
-      case "fill":
-        if (id.includes("water")) set(l.id, "fill-color", "#0a1626");
-        else if (id.includes("park") || id.includes("wood") || id.includes("grass") || id.includes("forest")) set(l.id, "fill-color", "#111a17");
-        else if (id.includes("building")) set(l.id, "fill-color", "#1b1f29");
-        else set(l.id, "fill-color", "#12151d");
-        set(l.id, "fill-outline-color", "rgba(255,255,255,0.04)");
-        break;
-      case "fill-extrusion":
-        set(l.id, "fill-extrusion-color", "#1b1f29");
-        set(l.id, "fill-extrusion-opacity", 0.6);
-        break;
-      case "line":
-        if (id.includes("water")) set(l.id, "line-color", "#0d1f36");
-        else if (id.includes("motorway") || id.includes("trunk") || id.includes("primary")) set(l.id, "line-color", "#3a4256");
-        else if (id.includes("casing")) set(l.id, "line-color", "#0f1219");
-        else if (id.includes("rail")) set(l.id, "line-color", "#262b36");
-        else if (id.includes("boundary") || id.includes("admin")) set(l.id, "line-color", "#2f3542");
-        else set(l.id, "line-color", "#272c38");
-        break;
-      case "symbol":
-        set(l.id, "text-color", "#9aa1b2");
-        set(l.id, "text-halo-color", "#0d0f14");
-        set(l.id, "text-halo-width", 1.2);
-        set(l.id, "icon-opacity", 0.55);
-        break;
-      default:
-        break;
-    }
-  }
-}
-
 export function DriverMap({
   me,
   meKind = "me",
@@ -178,7 +130,6 @@ export function DriverMap({
   const onReady = useCallback((map: MLMap) => {
     mapRef.current = map;
     if (process.env.NODE_ENV !== "production") (window as unknown as { __hopDriverMap?: MLMap }).__hopDriverMap = map;
-    darken(map);
     map.on("dragstart", () => setFollowing(false));
     map.on("resize", () => {
       if (!pendingView.current) return;
@@ -221,10 +172,10 @@ export function DriverMap({
       }
       try {
         map.setPaintProperty("hop-route-casing", "line-color", "#2457FF");
-        map.setPaintProperty("hop-route-casing", "line-opacity", guide ? 0 : 0.28);
+        map.setPaintProperty("hop-route-casing", "line-opacity", guide ? 0 : 0.18);
         map.setPaintProperty("hop-route-casing", "line-width", 14);
         map.setPaintProperty("hop-route-casing", "line-blur", 6);
-        map.setPaintProperty("hop-route-line", "line-color", guide ? "#9db5ff" : "#4d78ff");
+        map.setPaintProperty("hop-route-line", "line-color", guide ? "#7d9bff" : "#2457FF");
         map.setPaintProperty("hop-route-line", "line-width", guide ? 4 : 5);
         map.setPaintProperty("hop-route-line", "line-dasharray", guide ? [1.2, 1.6] : [1, 0]);
       } catch {
@@ -247,7 +198,7 @@ export function DriverMap({
         className,
       )}
     >
-      <MapView theme="dark" center={initialCenter} zoom={15} markers={markers} polyline={polyline ?? null} interactive={interactive} onReady={onReady}>
+      <MapView theme="light" center={initialCenter} zoom={15} markers={markers} polyline={polyline ?? null} interactive={interactive} onReady={onReady}>
         {children}
       </MapView>
       {showRecenter && interactive && (

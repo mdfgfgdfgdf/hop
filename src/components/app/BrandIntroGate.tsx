@@ -8,5 +8,5 @@ export function BrandIntroGate() {
   const isRider = pathname.startsWith("/ride");
   const isDriver = pathname.startsWith("/drive");
   if (!isRider && !isDriver) return null;
-  return <BrandIntro theme={isDriver ? "dark" : "light"} />;
+  return <BrandIntro theme="light" />;
 }
