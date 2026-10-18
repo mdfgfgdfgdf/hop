@@ -1,8 +1,8 @@
 "use client";
 /**
  * Driver map. Wraps the shared MapView (light style, or the flat offline
- * canvas when tiles are unavailable), styles the route as a soft brand line
- * (dashed for the straight "guide" to pickup) and drives the camera
+ * HOP City when tiles are unavailable), shows the route as a trip line or a
+ * dashed straight "guide" to pickup, and drives the camera
  * imperatively so it can follow the driver or frame a ride.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -155,46 +155,16 @@ export function DriverMap({
     applyView(true);
   }, [ready, following, hasFrame, meLat, meLng, applyView]);
 
-  // Route styling: glow for the trip, dashed light line for the pickup guide.
-  useEffect(() => {
-    if (!ready) return;
-    let frames = 0;
-    let raf = 0;
-    const style = () => {
-      const map = mapRef.current;
-      if (!map) return;
-      if (!map.getLayer("hop-route-line") || !map.getLayer("hop-route-casing")) {
-        if (frames++ < 60) raf = requestAnimationFrame(style);
-        return;
-      }
-      try {
-        map.setPaintProperty("hop-route-casing", "line-color", "#2457FF");
-        map.setPaintProperty("hop-route-casing", "line-opacity", guide ? 0 : 0.16);
-        map.setPaintProperty("hop-route-casing", "line-width", 12);
-        map.setPaintProperty("hop-route-casing", "line-blur", 4);
-        map.setPaintProperty("hop-route-line", "line-color", "#2457FF");
-        map.setPaintProperty("hop-route-line", "line-opacity", guide ? 0.75 : 1);
-        map.setPaintProperty("hop-route-line", "line-width", guide ? 4 : 5);
-        map.setPaintProperty("hop-route-line", "line-dasharray", guide ? [1.2, 1.6] : [1, 0]);
-      } catch {
-        /* style swapped */
-      }
-    };
-    style();
-    return () => cancelAnimationFrame(raf);
-  }, [ready, polyline, guide]);
-
   return (
     <div
       className={cn(
         "relative h-full w-full",
         // Soft location halo on the driver's own position / car.
         "[&_.pin-me]:shadow-[0_0_0_8px_rgba(36,87,255,0.16),0_6px_14px_-4px_rgba(36,87,255,0.55)]",
-        "[&_.hop-marker-car]:shadow-[0_0_0_6px_rgba(36,87,255,0.16),0_10px_22px_-8px_rgba(17,19,24,0.4),0_0_0_1px_rgba(17,19,24,0.06)]",
         className,
       )}
     >
-      <MapView theme="light" center={initialCenter} zoom={15} markers={markers} polyline={polyline ?? null} interactive={interactive} onReady={onReady}>
+      <MapView theme="light" center={initialCenter} zoom={15} markers={markers} polyline={polyline ?? null} routeStyle={guide ? "guide" : "trip"} interactive={interactive} onReady={onReady}>
         {children}
       </MapView>
       {showRecenter && interactive && (
