@@ -1,9 +1,13 @@
 import { expect, test } from "@playwright/test";
-import { ACCOUNTS, expectNoHorizontalOverflow, expectRtl, loginViaApi, setAutopilot, waitForRide } from "./helpers";
+import { ACCOUNTS, cancelActiveRides, expectNoHorizontalOverflow, expectRtl, loginViaApi, setAutopilot, waitForRide } from "./helpers";
 
 test.use({ geolocation: { latitude: 32.0685, longitude: 34.7683 }, permissions: ["geolocation"] });
 
 test.describe("rider journey", () => {
+  test.beforeEach(async ({ browser }) => {
+    await cancelActiveRides(browser);
+  });
+
   test("search → price → order → matched → driver arrives → ride → receipt → rating (demo autopilot)", async ({ page, context, browser }) => {
     test.setTimeout(240_000);
     const adminCtx = await browser.newContext();

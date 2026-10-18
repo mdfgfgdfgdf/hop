@@ -1,10 +1,14 @@
 import { expect, test } from "@playwright/test";
-import { ACCOUNTS, createRideViaApi, expectNoHorizontalOverflow, expectRtl, loginViaApi, setAutopilot } from "./helpers";
+import { ACCOUNTS, cancelActiveRides, createRideViaApi, expectNoHorizontalOverflow, expectRtl, loginViaApi, setAutopilot } from "./helpers";
 
 // driver@hop.local is seeded at Dizengoff Center; the rider ride is booked from there.
 test.use({ geolocation: { latitude: 32.0752, longitude: 34.7751 }, permissions: ["geolocation"] });
 
 test.describe("driver journey", () => {
+  test.beforeEach(async ({ browser }) => {
+    await cancelActiveRides(browser);
+  });
+
   test.afterEach(async ({ browser }) => {
     const adminCtx = await browser.newContext();
     await loginViaApi(adminCtx, ACCOUNTS.admin);

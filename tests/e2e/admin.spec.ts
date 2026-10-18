@@ -1,14 +1,18 @@
 import { expect, test } from "@playwright/test";
-import { ACCOUNTS, createRideViaApi, expectNoHorizontalOverflow, expectRtl, loginViaApi } from "./helpers";
+import { ACCOUNTS, cancelActiveRides, createRideViaApi, expectNoHorizontalOverflow, expectRtl, loginViaApi } from "./helpers";
 
 test.describe("operator dashboard", () => {
+  test.beforeEach(async ({ browser }) => {
+    await cancelActiveRides(browser);
+  });
+
   test("admin sees the overview KPIs, live map section and navigation", async ({ page, context }) => {
     await loginViaApi(context, ACCOUNTS.admin);
     await page.goto("/admin");
     await expect(page.getByRole("heading", { level: 1, name: "סקירה" })).toBeVisible();
-    await expect(page.getByText("נסיעות פעילות").first()).toBeVisible();
-    await expect(page.getByText("עמלת HOP").first()).toBeVisible();
-    await expect(page.getByText("תשלומים לנהגים").first()).toBeVisible();
+    await expect(page.getByText("נסיעות פעילות").filter({ visible: true }).first()).toBeVisible();
+    await expect(page.getByText("עמלת HOP").filter({ visible: true }).first()).toBeVisible();
+    await expect(page.getByText("תשלומים לנהגים").filter({ visible: true }).first()).toBeVisible();
     await expectRtl(page);
     await expectNoHorizontalOverflow(page);
   });
@@ -17,7 +21,7 @@ test.describe("operator dashboard", () => {
     await loginViaApi(context, ACCOUNTS.admin);
     await page.goto("/admin/drivers");
     await expect(page.getByRole("heading", { level: 1, name: "נהגים" })).toBeVisible();
-    await expect(page.getByText("אלון ברק").first()).toBeVisible();
+    await expect(page.getByText("אלון ברק").filter({ visible: true }).first()).toBeVisible();
 
     const list = await context.request.get("/api/admin/drivers?status=under_review");
     const { drivers } = (await list.json()) as { drivers: { user: { id: string; name: string } }[] };
@@ -36,16 +40,16 @@ test.describe("operator dashboard", () => {
     await loginViaApi(context, ACCOUNTS.admin);
     await page.goto("/admin/rides");
     await expect(page.getByRole("heading", { level: 1, name: "נסיעות" })).toBeVisible();
-    await expect(page.getByText("דיזנגוף סנטר").first()).toBeVisible();
+    await expect(page.getByText("דיזנגוף סנטר").filter({ visible: true }).first()).toBeVisible();
     await page.goto(`/admin/rides/${ride.id}`);
-    await expect(page.getByText("כיכר רבין").first()).toBeVisible();
+    await expect(page.getByText("כיכר רבין").filter({ visible: true }).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
   test("support staff see pricing read-only and cannot change the tariff", async ({ page, context }) => {
     await loginViaApi(context, ACCOUNTS.support);
     await page.goto("/admin/pricing");
-    await expect(page.getByText("הרשאת מנהל").first()).toBeVisible();
+    await expect(page.getByText("הרשאת מנהל").filter({ visible: true }).first()).toBeVisible();
     const res = await context.request.put("/api/admin/pricing", { data: { baseFareAgorot: 1300 } });
     expect(res.status()).toBe(403);
   });

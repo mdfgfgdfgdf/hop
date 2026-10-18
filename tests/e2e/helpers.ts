@@ -1,4 +1,4 @@
-import { expect, type APIRequestContext, type BrowserContext, type Page } from "@playwright/test";
+import { expect, type APIRequestContext, type Browser, type BrowserContext, type Page } from "@playwright/test";
 
 export const ACCOUNTS = {
   rider: { email: "rider@hop.local", password: "Rider1234!" },
@@ -40,6 +40,23 @@ export async function createRideViaApi(api: APIRequestContext, opts: { pickup?: 
   const r = await api.post("/api/rides", { data: { quoteId: quote.id, paymentMethod: opts.paymentMethod ?? "cash" } });
   expect(r.ok(), `ride: ${r.status()} ${await r.text()}`).toBeTruthy();
   return (await r.json()).ride as { id: string; status: string };
+}
+
+/**
+ * Cancels every active ride (as admin) so each test starts from a clean
+ * dispatch state — the e2e database is shared by the phone, tablet and
+ * desktop projects within one run.
+ */
+export async function cancelActiveRides(browser: Browser) {
+  const ctx = await browser.newContext();
+  try {
+    await loginViaApi(ctx, ACCOUNTS.admin);
+    const res = await ctx.request.get("/api/admin/rides?status=active&limit=200");
+    const { rides } = (await res.json()) as { rides: { id: string }[] };
+    for (const r of rides) await ctx.request.post(`/api/admin/rides/${r.id}/cancel`, { data: { reason: "e2e cleanup" } });
+  } finally {
+    await ctx.close();
+  }
 }
 
 export async function setAutopilot(context: BrowserContext, on: boolean, opts: { speedMps?: number; acceptDelaySec?: number } = {}) {
