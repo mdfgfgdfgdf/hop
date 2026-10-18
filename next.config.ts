@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   // Dev-only: allow the dev client when the app is opened via 127.0.0.1 (e2e, LAN testing).
   allowedDevOrigins: ["127.0.0.1", "localhost"],
+  // The dev badge sits over the bottom-left corner where map attributions and sheets live.
+  devIndicators: false,
   poweredByHeader: false,
   // Native / WASM packages that must be required by Node at runtime rather
   // than bundled by Turbopack.

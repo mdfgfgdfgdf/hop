@@ -316,9 +316,16 @@
   }
   .btn:disabled,
   .btn[aria-disabled="true"] {
-    opacity: 0.55;
+    opacity: 0.6;
     cursor: not-allowed;
-    filter: saturate(0.6);
+  }
+  /* Disabled primary: a calm gray-blue instead of a washed-out lavender. */
+  .btn-primary:disabled,
+  .btn-primary[aria-disabled="true"] {
+    opacity: 1;
+    background: linear-gradient(180deg, #b9c6ea, #a7b6e0);
+    color: rgba(255, 255, 255, 0.92);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
   }
   .btn:not(:disabled):active {
     transform: scale(0.975);

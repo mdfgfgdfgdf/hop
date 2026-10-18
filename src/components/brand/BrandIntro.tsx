@@ -44,8 +44,8 @@ export function BrandIntro({ theme = "light", force = false, onDone }: { theme?:
     return () => clearTimeout(t);
   }, [show, reduce, onDone]);
 
-  const bg = theme === "dark" ? "#111318" : "#F5F4F0";
-  const ink = theme === "dark" ? "#F5F4F0" : "#111318";
+  const bg = theme === "dark" ? "#111318" : "#F4F6FA";
+  const ink = theme === "dark" ? "#F4F6FA" : "#111318";
 
   return (
     <AnimatePresence>

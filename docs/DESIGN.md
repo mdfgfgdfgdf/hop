@@ -1,7 +1,7 @@
 # HOP — Design language & UI rules
 
 HOP is a modern, trustworthy Israeli mobility brand. Hebrew-first, RTL, mobile-first.
-Think "liquid glass over a live map": calm paper backgrounds, floating translucent
+Think "liquid glass over a live map": blue and white, cool-white backgrounds, floating gray translucent
 panels, one confident blue, big tap targets, very few steps to order a ride.
 
 ## Brand
@@ -9,25 +9,32 @@ panels, one confident blue, big tap targets, very few steps to order a ride.
 |---|---|---|
 | `--brand` | `#2457FF` | primary actions, route line, accents, logo |
 | `--ink` | `#111318` | text, dark surfaces, driver app background |
-| `--paper` | `#F5F4F0` | rider/admin page background |
+| `--paper` | `#F4F6FA` | cool-white page background (all three apps) |
 | `--mist` | `#C7C9D1` | borders, disabled, secondary icons |
 | `--success/--warning/--danger` | green / amber / red | status only |
 
-Logo: `import { Logo, LogoMark } from "@/components/brand/Logo"`. Never redraw the logo.
+Logo: `import { Logo, LogoMark } from "@/components/brand/Logo"` (static) or
+`import { AnimatedLogo, AnimatedMark } from "@/components/brand/AnimatedLogo"` (living marks: the letters hop,
+the needle in the logo acts as a gauge — `mode` idle | loading | moving | success, `hopOn`, `hopKey`).
+Use the animated marks wherever state changes (top bars, searching, completion, auth submit). Never redraw the logo.
 Tagline: **העיר שלך. הופ אחד.** · **MOVE WITH HOP**
 
 Typography: Heebo (loaded in root layout). Display headings use the `display` class
 (800 weight, tight tracking). Body 16px. Numbers use `tabular-nums` (`ltr-nums` class for
 mixed LTR numerals inside RTL copy, e.g. plates, phone numbers, prices).
 
-## Surfaces — liquid glass
+## Surfaces — gray liquid glass
+The `.glass` recipe has four layers: a neutral gray translucent fill with strong backdrop blur/saturation and
+inner gray depth; a specular highlight (`::before`) that follows the pointer via `--gx/--gy` (set globally by
+`GlassLight`); a bevelled rim (`::after`, bright top-left to gray bottom-right); content on top.
+
 - `glass` — translucent panel with blur + specular highlight (`glass-strong` for more opacity,
   `glass-md`/`glass-sm`/`glass-pill` for smaller radii, `glass-brand` for a blue glass).
 - Use glass for **floating** panels over the map (bottom sheets, offer cards, status chips,
   top bars). Use `card` for content sitting on paper (lists, forms, admin tables).
 - Never stack glass on glass more than two levels. Keep text contrast ≥ 4.5:1 (add `glass-strong`
   when the map is busy underneath).
-- Rider app: `data-theme="light"`. Driver app: `data-theme="dark"` (night-friendly). Admin: light.
+- All three apps use the light theme (`data-theme="light"`): blue and white, gray liquid glass. Dark tokens remain only for future use.
   Tokens switch automatically; always use token colours (`bg-bg`, `text-fg`, `text-fg-muted`,
   `bg-surface`, `border-line`) rather than hard-coded greys so both themes work.
 
