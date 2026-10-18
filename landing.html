@@ -1,125 +1,310 @@
 <title>hop – רשימת המתנה</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&family=Heebo:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800;900&family=Heebo:wght@400;500;700&display=swap">
 <style>
-/* Layout: split poster — huge wordmark + promise, price-compare strip, waitlist form, then three plain reasons. Brand: #2457FF / #111318 / #F5F4F0 / #C7C9D1 */
+/* Layout: alternating white / blue bands, each one idea. Brand: #2457FF blue, #111318 ink, #F5F4F0 paper, #C7C9D1 mist. Single committed light look (brand is white+blue). */
 :root{
-  --blue:#2457FF; --ink:#111318; --paper:#F5F4F0; --mist:#C7C9D1;
-  --bg:var(--paper); --fg:var(--ink); --muted:#5b5f6b; --card:#ffffff; --line:#dcdde3;
+  --blue:#2457FF; --blue-d:#1a44d6; --ink:#111318; --paper:#F5F4F0; --mist:#C7C9D1; --white:#ffffff;
+  --muted:#5b5f6b; --line:#e3e4ea;
   --display:"Rubik","Heebo",system-ui,sans-serif; --body:"Heebo","Rubik",system-ui,sans-serif;
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:var(--ink);--fg:var(--paper);--muted:#9a9eab;--card:#1b1e26;--line:#2a2e38;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:var(--ink);--fg:var(--paper);--muted:#9a9eab;--card:#1b1e26;--line:#2a2e38;color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;direction:rtl}
-.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-header .wrap{display:flex;justify-content:space-between;align-items:center;padding-block:22px}
-.eyebrow{font:500 12px/1 var(--body);letter-spacing:.3em;text-transform:uppercase;color:var(--muted)}
-.logo{direction:ltr;font:900 30px/1 var(--display);color:var(--blue);letter-spacing:-.04em}
-.logo svg{height:30px;width:auto;display:block}
-.hero .wrap{display:grid;grid-template-columns:1.15fr 1fr;gap:48px;align-items:center;padding-block:32px 56px}
-.hero h1{font:900 clamp(44px,7.4vw,92px)/.98 var(--display);letter-spacing:-.03em;margin:0;text-wrap:balance}
+body{background:var(--white);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;direction:rtl}
+.wrap{max-width:1160px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+section .wrap{padding-block:96px}
+.blue{background:var(--blue);color:var(--white)}
+.paper{background:var(--paper)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font:600 13px/1 var(--body);letter-spacing:.28em;text-transform:uppercase;color:var(--blue)}
+.blue .eyebrow{color:#cfdaff}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+h2{font-weight:900;font-size:clamp(36px,5vw,62px);line-height:1.02;letter-spacing:-.03em;margin-top:14px}
+.sub{color:var(--muted);font-size:clamp(17px,1.5vw,20px);max-width:36em;margin:16px 0 0}
+.blue .sub{color:#dfe6ff}
+svg.i{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* logo */
+.logo{display:inline-flex;align-items:flex-end;direction:ltr;font:900 1em/0.8 var(--display);letter-spacing:-.06em;color:var(--blue)}
+.logo .o{width:.62em;height:.62em;margin:0 .01em 0 .02em;display:block}
+.logo .o circle{fill:none;stroke:currentColor;stroke-width:21}
+.logo .o .cut{stroke:var(--cut,#fff);stroke-width:12;stroke-linecap:butt}
+
+/* nav */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:#fff}
+header .wrap{display:flex;align-items:center;justify-content:space-between;padding-block:14px;gap:16px}
+header .logo{font-size:40px}
+nav{display:flex;gap:26px;font-weight:500}
+nav a{color:var(--ink);text-decoration:none}
+nav a:hover{color:var(--blue)}
+.btn{display:inline-flex;align-items:center;gap:10px;font:700 16px var(--display);padding:13px 22px;border-radius:14px;background:var(--blue);color:#fff;text-decoration:none;border:0;cursor:pointer}
+.btn:hover{background:var(--blue-d)}
+.btn:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.blue .btn{background:var(--ink)}
+@media (max-width:760px){nav{display:none}}
+
+/* hero */
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center;padding-block:72px 96px}
+.hero h1{font-weight:900;font-size:clamp(48px,7.2vw,96px);line-height:.96;letter-spacing:-.035em;margin-top:18px}
 .hero h1 em{font-style:normal;color:var(--blue)}
-.lede{font-size:clamp(17px,1.6vw,20px);color:var(--muted);max-width:32em;margin:22px 0 0}
-.form{margin-top:30px;display:flex;gap:10px;flex-wrap:wrap;max-width:520px}
-.form input{flex:1 1 240px;min-width:0;font:500 17px var(--body);padding:16px 18px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--fg);direction:ltr;text-align:right}
-.form input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px color-mix(in srgb,var(--blue) 25%,transparent)}
-.form button{font:700 17px var(--display);padding:16px 26px;border:0;border-radius:14px;background:var(--blue);color:#fff;cursor:pointer;display:flex;gap:10px;align-items:center}
-.form button:hover{filter:brightness(1.08)}
-.form button:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
-.form button:disabled{opacity:.6;cursor:wait}
+.form{margin-top:30px;display:flex;gap:10px;flex-wrap:wrap;max-width:540px}
+.form input{flex:1 1 240px;min-width:0;font:500 17px var(--body);padding:16px 18px;border-radius:14px;border:1.5px solid var(--line);background:#fff;color:var(--ink);direction:ltr;text-align:right}
+.form input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(36,87,255,.2)}
+.form .btn{padding:16px 26px;font-size:17px}
 .note{font-size:14px;color:var(--muted);margin-top:12px;min-height:1.6em}
 .note.ok{color:var(--blue);font-weight:700}
 .note.err{color:#d93636}
-.count{display:flex;align-items:center;gap:10px;margin-top:18px;font-size:14px;color:var(--muted)}
-.dots{display:flex}.dots span{width:26px;height:26px;border-radius:50%;border:2px solid var(--bg);margin-left:-8px;background:var(--mist)}
-.dots span:nth-child(2){background:var(--blue)}.dots span:nth-child(3){background:var(--fg)}
+.blue .note{color:#dfe6ff}.blue .note.ok{color:#fff}.blue .note.err{color:#ffd0d0}
+.trust{display:flex;gap:22px;flex-wrap:wrap;margin-top:22px;font-size:15px;color:var(--muted)}
+.trust span{display:flex;gap:8px;align-items:center}
+.trust svg{color:var(--blue);width:20px;height:20px}
 
-/* price card */
-.ticket{background:var(--ink);color:var(--paper);border-radius:28px;padding:30px;position:relative;overflow:hidden}
-.ticket h2{font:700 15px var(--body);letter-spacing:.2em;color:var(--mist);margin:0 0 6px}
-.route{font:700 22px var(--display);margin:0 0 22px}
-.row{display:flex;justify-content:space-between;align-items:baseline;padding:16px 0;border-top:1px dashed #3a3e4a}
-.row .k{color:var(--mist)}
-.row .v{font:900 34px var(--display);font-variant-numeric:tabular-nums}
-.row.taxi .v{text-decoration:line-through;text-decoration-color:#ff5a5a;color:var(--mist);font-weight:500}
-.row.hop .v{color:#fff;background:var(--blue);padding:2px 14px;border-radius:12px}
-.save{margin-top:18px;font:700 16px var(--display);color:var(--paper)}
-.save b{color:#7d9bff}
-.small{font-size:12px;color:var(--mist);margin-top:10px}
+/* phone */
+.phone{justify-self:center;width:min(320px,100%);aspect-ratio:9/18.5;background:var(--ink);border-radius:46px;padding:12px;box-shadow:0 40px 80px -30px rgba(17,19,24,.45);position:relative}
+.screen{position:relative;height:100%;border-radius:36px;overflow:hidden;background:#eef0f4;display:flex;flex-direction:column}
+.map{flex:1;position:relative;background:
+  linear-gradient(90deg,transparent 47%,#fff 47% 53%,transparent 53%) 0 0/70px 70px,
+  linear-gradient(0deg,transparent 46%,#fff 46% 54%,transparent 54%) 0 0/70px 70px,#e8eaef}
+.map::after{content:"";position:absolute;inset:0 -20% 0 70%;background:#cfe0f7;transform:skewX(-10deg)}
+.map svg{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.island{position:absolute;top:10px;left:50%;translate:-50% 0;width:90px;height:24px;background:var(--ink);border-radius:20px;z-index:2}
+.sheet{background:var(--ink);color:#fff;padding:18px 18px 22px;border-radius:26px 26px 0 0;margin-top:-26px;position:relative;z-index:2}
+.sheet .grab{width:40px;height:4px;border-radius:4px;background:#3a3e4a;margin:0 auto 14px}
+.sheet b{font:800 22px var(--display);display:block;margin-bottom:12px}
+.sheet .find{background:var(--blue);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:10px;font-weight:500}
+.sheet .find svg{width:18px;height:18px}
+.sheet .price{display:flex;justify-content:space-between;margin-top:12px;font-size:14px;color:var(--mist)}
+.sheet .price strong{color:#fff;font:800 16px var(--display)}
+.bubble{position:absolute;z-index:3;background:#fff;border-radius:16px;padding:10px 14px;box-shadow:0 18px 40px -16px rgba(17,19,24,.35);font-size:14px;display:flex;gap:10px;align-items:center;white-space:nowrap}
+.bubble .dot{width:34px;height:34px;border-radius:10px;background:var(--blue);color:#fff;display:grid;place-items:center}
+.bubble .dot svg{width:18px;height:18px}
+.bubble b{display:block;font:800 16px var(--display)}
+.b1{top:22%;right:-18%}.b2{bottom:30%;left:-20%}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}.b1{right:-4%}.b2{left:-4%}}
 
-.strip{background:var(--blue);color:#fff}
-.strip .wrap{padding-block:18px;font:900 clamp(22px,3.2vw,36px)/1.2 var(--display);display:flex;gap:28px;flex-wrap:wrap;justify-content:space-between}
-.strip span:nth-child(even){opacity:.55}
+/* blue price band */
+.price .wrap{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.receipt{background:#fff;color:var(--ink);border-radius:28px;padding:30px;box-shadow:0 40px 80px -40px rgba(0,0,0,.5)}
+.receipt .route{display:flex;gap:12px;align-items:center;font:700 18px var(--display);padding-bottom:18px;border-bottom:1px dashed var(--line)}
+.receipt .route svg{color:var(--blue)}
+.line{display:flex;justify-content:space-between;align-items:center;padding:18px 0;border-bottom:1px dashed var(--line)}
+.line .k{display:flex;gap:12px;align-items:center;font-weight:500}
+.line .k .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--paper);color:var(--muted)}
+.line .v{font:900 36px var(--display);font-variant-numeric:tabular-nums}
+.line.taxi .v{color:var(--mist);text-decoration:line-through;text-decoration-color:#ff4d4d;text-decoration-thickness:3px;font-weight:700}
+.line.hop .k .ic{background:var(--blue);color:#fff}
+.line.hop .v{color:var(--blue)}
+.saving{margin-top:18px;background:var(--paper);border-radius:16px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;font-weight:500}
+.saving b{font:900 26px var(--display);color:var(--blue)}
+.fine{font-size:12px;color:var(--muted);margin-top:12px}
+.bigstat{display:flex;gap:36px;flex-wrap:wrap;margin-top:34px}
+.bigstat div{font:900 54px/1 var(--display)}
+.bigstat small{display:block;font:500 15px var(--body);color:#dfe6ff;margin-top:8px}
+@media (max-width:900px){.price .wrap{grid-template-columns:1fr}}
 
-.why .wrap{padding-block:72px;display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
-.why h3{font:700 24px/1.2 var(--display);margin:14px 0 8px}
-.why p{margin:0;color:var(--muted)}
-.why .ic{width:48px;height:48px;border-radius:14px;background:var(--blue);color:#fff;display:grid;place-items:center;font:900 22px var(--display)}
-.final .wrap{padding-block:24px 80px;text-align:center}
-.final h2{font:900 clamp(36px,6vw,72px)/1 var(--display);margin:0 0 10px;letter-spacing:-.03em}
-.final h2 em{font-style:normal;color:var(--blue)}
-.final .form{margin-inline:auto;justify-content:center}
-footer .wrap{padding-block:26px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:14px;color:var(--muted)}
-@media (max-width:860px){.hero .wrap,.why .wrap{grid-template-columns:1fr}.hero .wrap{gap:36px}}
-@media (prefers-reduced-motion:no-preference){.ticket{animation:rise .7s ease-out both}@keyframes rise{from{transform:translateY(14px)}to{transform:none}}}
+/* steps */
+.head{max-width:720px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
+.step{border:1.5px solid var(--line);border-radius:24px;padding:30px;background:#fff}
+.step .ic{width:58px;height:58px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center}
+.step .n{font:800 13px var(--display);letter-spacing:.2em;color:var(--blue);margin-top:24px}
+.step h3{font:800 24px/1.2 var(--display);margin-top:8px}
+.step p{color:var(--muted);margin:10px 0 0}
+@media (max-width:900px){.steps{grid-template-columns:1fr}}
+
+/* features (blue) */
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:56px;background:rgba(255,255,255,.18);border-radius:24px;overflow:hidden}
+.feat{background:var(--blue);padding:32px}
+.feat .ic{width:52px;height:52px;border-radius:14px;background:#fff;color:var(--blue);display:grid;place-items:center}
+.feat h3{font:800 22px/1.25 var(--display);margin-top:20px}
+.feat p{margin:8px 0 0;color:#dfe6ff}
+@media (max-width:900px){.feats{grid-template-columns:1fr}}
+
+/* compare table */
+.tbl{margin-top:48px;overflow-x:auto;border:1.5px solid var(--line);border-radius:24px}
+table{width:100%;border-collapse:collapse;min-width:560px}
+th,td{padding:20px 24px;text-align:right;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+thead th{font:800 18px var(--display);background:var(--paper)}
+thead th.us{background:var(--blue);color:#fff}
+td.us{background:#f2f5ff;font-weight:700;color:var(--blue)}
+td .yes,td .no{display:inline-flex;gap:8px;align-items:center}
+td .no{color:var(--muted)}
+td svg{width:20px;height:20px}
+
+/* slogan strip */
+.strip{background:var(--ink);color:#fff;overflow:hidden}
+.strip .wrap{padding-block:26px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;font:900 clamp(24px,3.4vw,40px)/1.1 var(--display);letter-spacing:-.02em}
+.strip span:nth-child(even){color:var(--blue)}
+
+/* cta */
+.cta .wrap{text-align:center;display:flex;flex-direction:column;align-items:center}
+.cta .logo{font-size:clamp(90px,16vw,190px);color:#fff;--cut:var(--blue)}
+.cta h2{margin-top:28px}
+.cta .form{justify-content:center}
+.cta .form input{border-color:transparent}
+.perk{display:inline-flex;gap:10px;align-items:center;background:rgba(255,255,255,.14);padding:8px 16px;border-radius:999px;margin-top:18px;font-weight:500}
+
+footer{background:var(--ink);color:var(--mist)}
+footer .wrap{padding-block:40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;font-size:14px}
+footer .logo{font-size:34px;color:#fff;--cut:var(--ink)}
+footer .socials{display:flex;gap:12px}
+footer .socials span{width:40px;height:40px;border-radius:12px;background:#1d2029;display:grid;place-items:center;color:#fff}
+footer .socials svg{width:18px;height:18px}
+
+@media (prefers-reduced-motion:no-preference){
+  .route-path{stroke-dasharray:420;stroke-dashoffset:420;animation:draw 2.2s .3s ease-out forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .bubble{animation:float 5s ease-in-out infinite}.b2{animation-delay:-2.5s}
+  @keyframes float{50%{transform:translateY(-8px)}}
+}
 </style>
 
+<!-- logo symbol: the "o" with the diagonal cut, as in the brand board -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="o" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38"/><line class="cut" x1="50" y1="50" x2="92" y2="2"/></symbol>
+</svg>
+
 <header><div class="wrap">
-  <div class="logo" aria-label="hop">
-    hop
-  </div>
-  <span class="eyebrow">Move with hop</span>
+  <a href="#top" class="logo" aria-label="hop">h<svg class="o" viewBox="0 0 100 100"><use href="#o"/></svg>p</a>
+  <nav><a href="#price">המחיר</a><a href="#how">איך זה עובד</a><a href="#why">למה hop</a><a href="#compare">השוואה</a></nav>
+  <a class="btn" href="#join">הצטרפו לרשימה</a>
 </div></header>
 
-<section class="hero"><div class="wrap">
+<section class="hero" id="top"><div class="wrap">
   <div>
+    <span class="eyebrow"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4"/></svg>בקרוב בעיר שלכם</span>
     <h1>בואו נשנה את <em>המחירים.</em></h1>
-    <p class="lede">למה לשלם על מונית כמו על ארוחה? hop מחברת אתכם לנסיעה עירונית במחיר הוגן וקבוע מראש, בלי מונה ובלי הפתעות. מצטרפים לרשימה ומקבלים גישה ראשונים.</p>
+    <p class="sub">למה לשלם על מונית כמו על ארוחה? hop מחברת אתכם לנסיעה עירונית במחיר הוגן וקבוע מראש. בלי מונה, בלי הפתעות, עד חצי מהמחיר.</p>
     <form class="form" id="f1" novalidate>
       <input id="email1" type="email" required placeholder="you@email.com" aria-label="כתובת אימייל" autocomplete="email">
-      <button type="submit">אני בפנים <span aria-hidden="true">←</span></button>
+      <button class="btn" type="submit">שמרו לי מקום <svg class="i" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
     </form>
-    <p class="note" id="n1" role="status">בלי ספאם. מייל אחד כשאנחנו עולים לאוויר בעיר שלכם.</p>
-    <div class="count"><div class="dots"><span></span><span></span><span></span></div><span id="cnt">הצטרפו ראשונים לרשימה</span></div>
+    <p class="note" id="n1" role="status">בלי ספאם. מייל אחד כשאנחנו עולים לאוויר.</p>
+    <div class="trust">
+      <span><svg class="i" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>נהגים מאומתים</span>
+      <span><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>איסוף תוך דקות</span>
+      <span><svg class="i" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>מחיר נעול מראש</span>
+    </div>
   </div>
 
-  <aside class="ticket" aria-label="השוואת מחיר לדוגמה">
-    <h2>נסיעה לדוגמה</h2>
-    <p class="route">רוטשילד ← נמל תל אביב · 4.2 ק״מ</p>
-    <div class="row taxi"><span class="k">מונית רגילה</span><span class="v">₪58</span></div>
-    <div class="row hop"><span class="k">עם hop</span><span class="v">₪29</span></div>
-    <p class="save">חוסכים <b>₪29</b> בנסיעה אחת. תכפילו בכל יום עבודה.</p>
-    <p class="small">מחירים להמחשה בלבד, לפני השקה.</p>
-  </aside>
+  <div class="phone" aria-label="תצוגת האפליקציה">
+    <div class="screen">
+      <div class="island"></div>
+      <div class="map">
+        <svg viewBox="0 0 300 380" preserveAspectRatio="none" aria-hidden="true">
+          <path class="route-path" d="M70 70 L95 140 L170 150 L180 250 L240 280" fill="none" stroke="#2457FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="70" cy="70" r="11" fill="#2457FF" stroke="#fff" stroke-width="4"/>
+          <circle cx="240" cy="280" r="11" fill="#111318" stroke="#fff" stroke-width="4"/>
+        </svg>
+      </div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <b>לאן?</b>
+        <div class="find"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>מצאו נסיעה</div>
+        <div class="price"><span>hop · 4 דק׳ ממך</span><strong>₪29</strong></div>
+      </div>
+    </div>
+    <div class="bubble b1"><span class="dot"><svg class="i" viewBox="0 0 24 24"><path d="M5 17h14l-1.5-6a2 2 0 0 0-2-1.5h-7a2 2 0 0 0-2 1.5z"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg></span><span><b>הנהג בדרך</b>3 דקות</span></div>
+    <div class="bubble b2"><span class="dot"><svg class="i" viewBox="0 0 24 24"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><circle cx="17" cy="14" r="1"/></svg></span><span><b>חסכת ₪29</b>בנסיעה הזאת</span></div>
+  </div>
+</div></section>
+
+<section class="blue price" id="price"><div class="wrap">
+  <div>
+    <span class="eyebrow">המספרים מדברים</span>
+    <h2>למה לשלם על מונית?</h2>
+    <p class="sub">אותה נסיעה, אותה עיר, חצי מחיר. hop מחשבת מחיר קבוע לפני שאתם יוצאים, כדי שתדעו בדיוק כמה זה יעלה.</p>
+    <div class="bigstat">
+      <div>50%<small>פחות ממונית רגילה</small></div>
+      <div>₪0<small>תוספת לילה או פקקים</small></div>
+      <div>4′<small>זמן איסוף ממוצע</small></div>
+    </div>
+  </div>
+  <div class="receipt" aria-label="השוואת מחיר לדוגמה">
+    <div class="route"><svg class="i" viewBox="0 0 24 24"><path d="M12 22s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>רוטשילד ← נמל תל אביב · 4.2 ק״מ</div>
+    <div class="line taxi"><span class="k"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M5 17h14l-1.5-6a2 2 0 0 0-2-1.5h-7a2 2 0 0 0-2 1.5z"/><path d="M10 6h4l1 3.5H9z"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg></span>מונית רגילה</span><span class="v">₪58</span></div>
+    <div class="line hop"><span class="k"><span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M5 17h14l-1.5-6a2 2 0 0 0-2-1.5h-7a2 2 0 0 0-2 1.5z"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg></span>hop</span><span class="v">₪29</span></div>
+    <div class="saving"><span>חיסכון בחודש (20 נסיעות)</span><b>₪580</b></div>
+    <p class="fine">מחירים להמחשה בלבד, לפני השקה.</p>
+  </div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <div class="head">
+    <span class="eyebrow">איך זה עובד</span>
+    <h2>שלושה צעדים. הופ אחד.</h2>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M12 22s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></div><div class="n">שלב 1</div><h3>כותבים לאן</h3><p>מקלידים יעד ורואים מיד את המחיר הסופי. בלי הערכות ובלי מונה.</p></div>
+    <div class="step"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="n">שלב 2</div><h3>מאשרים בלחיצה</h3><p>נהג מאומת קרוב אליכם מקבל את הנסיעה, ואתם רואים אותו מתקרב על המפה.</p></div>
+    <div class="step"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M5 17h14l-1.5-6a2 2 0 0 0-2-1.5h-7a2 2 0 0 0-2 1.5z"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg></div><div class="n">שלב 3</div><h3>עולים ונוסעים</h3><p>התשלום יוצא אוטומטית בסוף, בדיוק הסכום שראיתם בהתחלה.</p></div>
+  </div>
+</div></section>
+
+<section class="blue" id="why"><div class="wrap">
+  <div class="head">
+    <span class="eyebrow">למה hop</span>
+    <h2>נסיעה עירונית, כמו שהיא הייתה צריכה להיות.</h2>
+  </div>
+  <div class="feats">
+    <div class="feat"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><h3>מחיר הוגן וקבוע</h3><p>המחיר ננעל לפני היציאה. פקק או עקיפה לא יעלו לכם שקל.</p></div>
+    <div class="feat"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3>בטיחות קודם</h3><p>נהגים מאומתים, שיתוף מסלול חי עם חברים וכפתור חירום באפליקציה.</p></div>
+    <div class="feat"><div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>מגיעים מהר</h3><p>המערכת משבצת את הנהג הקרוב ביותר, בממוצע תוך ארבע דקות.</p></div>
+    <div class="feat"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h12"/></svg></div><h3>קבלה ברורה</h3><p>כל נסיעה מגיעה עם פירוט מלא במייל. מושלם להחזרי הוצאות.</p></div>
+    <div class="feat"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></div><h3>נהגים מרוויחים יותר</h3><p>עמלה נמוכה יותר לנהגים, כך שהמחיר יורד בלי לפגוע בהם.</p></div>
+    <div class="feat"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5 2 7.5-6.5-4.5L5.5 21l2-7.5L2 9h7z"/></svg></div><h3>הטבה למצטרפים ראשונים</h3><p>מי שברשימה מקבל חודש ראשון בהנחה וגישה לפני כולם.</p></div>
+  </div>
+</div></section>
+
+<section id="compare"><div class="wrap">
+  <div class="head">
+    <span class="eyebrow">השוואה</span>
+    <h2>hop מול מונית רגילה</h2>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th></th><th>מונית רגילה</th><th class="us">hop</th></tr></thead>
+      <tbody>
+        <tr><td>מחיר ידוע מראש</td><td><span class="no"><svg class="i" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>מונה רץ</span></td><td class="us"><span class="yes"><svg class="i" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>קבוע</span></td></tr>
+        <tr><td>תוספת לילה ושבת</td><td><span class="no">עד 25%</span></td><td class="us">₪0</td></tr>
+        <tr><td>נסיעה של 4 ק״מ</td><td><span class="no">כ-₪58</span></td><td class="us">כ-₪29</td></tr>
+        <tr><td>מעקב חי במפה</td><td><span class="no"><svg class="i" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>לא תמיד</span></td><td class="us"><span class="yes"><svg class="i" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>תמיד</span></td></tr>
+        <tr><td>תשלום באפליקציה</td><td><span class="no">תלוי בנהג</span></td><td class="us"><span class="yes"><svg class="i" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>אוטומטי</span></td></tr>
+      </tbody>
+    </table>
+  </div>
 </div></section>
 
 <div class="strip" aria-hidden="true"><div class="wrap"><span>Your city.</span><span>One hop.</span><span>העיר שלך.</span><span>הופ אחד.</span></div></div>
 
-<section class="why"><div class="wrap">
-  <div><div class="ic">₪</div><h3>מחיר קבוע לפני שיוצאים</h3><p>רואים כמה תשלמו לפני שמזמינים. בלי מונה רץ, בלי תוספות לילה מפתיעות.</p></div>
-  <div><div class="ic">⟶</div><h3>למה לשלם על מונית?</h3><p>מסלולים חכמים ונהגים בעיר שלכם מורידים את המחיר עד חצי ממונית רגילה.</p></div>
-  <div><div class="ic">h</div><h3>אפליקציה אחת, הופ אחד</h3><p>“לאן?”, לחיצה, ויוצאים. כל הנסיעה על המפה, מהאיסוף ועד היעד.</p></div>
-</div></section>
-
-<section class="final"><div class="wrap">
-  <h2>העיר שלך. <em>הופ אחד.</em></h2>
-  <p class="lede" style="margin-inline:auto">המקומות הראשונים מקבלים חודש נסיעות בהנחה.</p>
+<section class="blue cta" id="join"><div class="wrap">
+  <span class="logo" aria-label="hop">h<svg class="o" viewBox="0 0 100 100"><use href="#o"/></svg>p</span>
+  <h2>העיר שלך. הופ אחד.</h2>
+  <p class="sub">הצטרפו לרשימת ההמתנה ותהיו הראשונים לנסוע כש-hop עולה לאוויר.</p>
   <form class="form" id="f2" novalidate>
     <input id="email2" type="email" required placeholder="you@email.com" aria-label="כתובת אימייל" autocomplete="email">
-    <button type="submit">שמרו לי מקום</button>
+    <button class="btn" type="submit">אני בפנים</button>
   </form>
   <p class="note" id="n2" role="status"></p>
+  <span class="perk"><svg class="i" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>חודש ראשון בהנחה למצטרפים מהרשימה</span>
 </div></section>
 
-<footer><div class="wrap"><span>© 2026 hop</span><span>MOVE WITH HOP</span></div></footer>
+<footer><div class="wrap">
+  <span class="logo" aria-label="hop">h<svg class="o" viewBox="0 0 100 100"><use href="#o"/></svg>p</span>
+  <span>MOVE WITH HOP · © 2026</span>
+  <div class="socials" aria-hidden="true">
+    <span><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></span>
+    <span><svg class="i" viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V3c1 2 3 3 5 3"/></svg></span>
+    <span><svg class="i" viewBox="0 0 24 24"><path d="M4 4l16 16M20 4L4 20"/></svg></span>
+  </div>
+</div></footer>
 
 <script>
 (function(){
-  var db=null,user=null, endpoint=document.documentElement.getAttribute('data-waitlist-endpoint')||window.HOP_WAITLIST_ENDPOINT||'';
+  var db=null,user=null,endpoint=window.HOP_WAITLIST_ENDPOINT||'';
   if(window.claude&&claude.use){claude.use('db').then(function(d){db=d;}).catch(function(){});claude.use('user').then(function(u){user=u;}).catch(function(){});}
   var re=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-  function key(e){return e.toLowerCase().replace(/[^a-z0-9]/g,'_').slice(0,120);}
   async function save(email){
     if(db&&user){var id=await user.id();await db.doc('waitlist/'+id).set({email:email,at:new Date().toISOString()});return;}
     if(endpoint){var r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({email:email})});if(!r.ok)throw new Error('http');return;}
