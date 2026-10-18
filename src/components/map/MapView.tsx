@@ -25,7 +25,7 @@ try {
 function ensureRtlTextPlugin() {
   try {
     if (getRTLTextPluginStatus() === "unavailable") {
-      setRTLTextPlugin("https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.js", true);
+      setRTLTextPlugin(new URL("/map/rtl-text", window.location.origin).href, true);
     }
   } catch {
     /* ignore — labels fall back to logical order */
@@ -73,10 +73,12 @@ type Props = {
   children?: React.ReactNode;
 };
 
+const DEFAULT_STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
+
 const FALLBACK_STYLE: StyleSpecification = {
   version: 8,
   sources: {},
-  layers: [{ id: "bg", type: "background", paint: { "background-color": "#e7e9ee" } }],
+  layers: [{ id: "bg", type: "background", paint: { "background-color": "#eef1f6" } }],
 };
 const FALLBACK_STYLE_DARK: StyleSpecification = {
   version: 8,
@@ -115,7 +117,9 @@ export function MapView({ center, zoom = 14, markers = [], polyline, fit, fitPad
   const mapRef = useRef<MLMap | null>(null);
   const markerRefs = useRef<globalThis.Map<string, Marker>>(new globalThis.Map());
   const [ready, setReady] = useState(false);
-  const styleUrl = process.env.NEXT_PUBLIC_MAP_STYLE_URL || "";
+  // Real vector tiles by default (OpenFreeMap "positron": light, blue-and-white friendly, no key).
+  // Set NEXT_PUBLIC_MAP_STYLE_URL="" to force the offline canvas.
+  const styleUrl = process.env.NEXT_PUBLIC_MAP_STYLE_URL ?? DEFAULT_STYLE_URL;
   const [offline, setOffline] = useState(!styleUrl);
   const emitMoveEnd = useEffectEvent((c: LatLng, z: number) => onMoveEnd?.(c, z));
   const emitMoveStart = useEffectEvent(() => onMoveStart?.());

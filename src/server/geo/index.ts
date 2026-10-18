@@ -5,13 +5,13 @@ import { serviceAreas } from "../db/schema";
 import { env } from "../env";
 import { DemoGeoProvider } from "./demo-provider";
 import { pointInRing } from "./haversine";
-import { OsmGeoProvider } from "./osm-provider";
+import { LiveGeoProvider } from "./live-provider";
 import type { GeoProvider } from "./types";
 
 let provider: GeoProvider | null = null;
 
 export function geo(): GeoProvider {
-  if (!provider) provider = env().GEO_PROVIDER === "osm" ? new OsmGeoProvider() : new DemoGeoProvider();
+  if (!provider) provider = env().GEO_PROVIDER === "demo" ? new DemoGeoProvider() : new LiveGeoProvider();
   return provider;
 }
 

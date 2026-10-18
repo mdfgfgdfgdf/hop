@@ -8,7 +8,8 @@ test.describe("rider journey", () => {
     test.setTimeout(240_000);
     const adminCtx = await browser.newContext();
     await loginViaApi(adminCtx, ACCOUNTS.admin);
-    await setAutopilot(adminCtx, true);
+    // Fast demo driver so the whole ride fits the test budget (the e2e DB is fresh per run).
+    await setAutopilot(adminCtx, true, { speedMps: 90, acceptDelaySec: 1 });
     await adminCtx.close();
 
     await loginViaApi(context, ACCOUNTS.rider);
@@ -59,7 +60,7 @@ test.describe("rider journey", () => {
     await page.goto("/ride/support");
     await expect(page.getByTestId("support")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("new-ticket").click();
-    await page.getByTestId("new-ticket-form").waitFor();
+    await expect(page.getByTestId("ticket-form")).toBeVisible({ timeout: 15_000 });
     await expectNoHorizontalOverflow(page);
   });
 });

@@ -15,6 +15,7 @@
 pnpm install
 cp .env.example .env.local      # defaults: embedded PGlite DB, demo mode on, offline geo provider
 pnpm dev                        # http://localhost:3000 — migrates + seeds automatically
+                                # open it via localhost (the dev client is not served to other origins)
 ```
 
 Demo accounts (seeded when `HOP_DEMO_MODE=true`):
@@ -57,8 +58,9 @@ Playwright in a container with a pre-installed Chromium: `PW_CHROMIUM_PATH=/opt/
 
 - `DATABASE_URL` — `pglite://./data/hop` (embedded, zero setup), `memory://` (tests) or `postgres://…` (production; `docker-compose up` gives you one).
 - `HOP_DEMO_MODE` — seeds demo users/drivers, enables the autopilot, shows the DEMO banner.
-- `GEO_PROVIDER` — `demo` (offline Israeli places + estimated routes) or `osm` (Nominatim + OSRM, real data).
-- `NEXT_PUBLIC_MAP_STYLE_URL` — MapLibre style (OpenFreeMap needs no key). Empty → flat offline canvas.
+- `GEO_PROVIDER` — `osm` (default): **live map data, no API keys** — Photon search-as-you-type, Nominatim reverse geocoding (Hebrew), OSRM road routing; each call has a timeout, a cache and a circuit breaker, and falls back to a clearly-labelled estimate if a service is down. `demo` = offline only (used by the tests).
+- `NEXT_PUBLIC_MAP_STYLE_URL` — MapLibre style; default OpenFreeMap "positron" (light vector tiles, no key). Hebrew labels are shaped by the RTL text plugin served from `/map/rtl-text`. Empty → flat offline canvas.
+- Before real traffic, point `PHOTON_URL`, `NOMINATIM_URL`, `OSRM_URL` at your own instances (the public servers are for light use) and set `HOP_GEO_CONTACT` to a real address.
 - `HOP_SESSION_SECRET`, `HOP_ADMIN_EMAIL`, `HOP_ADMIN_PASSWORD` — change in production.
 
 ## Documentation

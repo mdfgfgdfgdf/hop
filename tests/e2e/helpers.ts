@@ -42,8 +42,11 @@ export async function createRideViaApi(api: APIRequestContext, opts: { pickup?: 
   return (await r.json()).ride as { id: string; status: string };
 }
 
-export async function setAutopilot(context: BrowserContext, on: boolean) {
-  const res = await context.request.put("/api/admin/settings", { data: { "demo.autopilot": on } });
+export async function setAutopilot(context: BrowserContext, on: boolean, opts: { speedMps?: number; acceptDelaySec?: number } = {}) {
+  const data: Record<string, boolean | number> = { "demo.autopilot": on };
+  if (opts.speedMps != null) data["demo.driverSpeedMps"] = opts.speedMps;
+  if (opts.acceptDelaySec != null) data["demo.autopilotAcceptDelaySec"] = opts.acceptDelaySec;
+  const res = await context.request.put("/api/admin/settings", { data });
   expect(res.ok(), `settings: ${res.status()} ${await res.text()}`).toBeTruthy();
 }
 

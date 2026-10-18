@@ -11,6 +11,9 @@ importers:
       '@electric-sql/pglite':
         specifier: 0.5.10
         version: 0.5.10
+      '@mapbox/mapbox-gl-rtl-text':
+        specifier: 0.3.0
+        version: 0.3.0
       '@node-rs/argon2':
         specifier: 2.2.2
         version: 2.2.2
@@ -857,6 +860,9 @@ packages:
   '@mapbox/jsonlint-lines-primitives@2.0.3':
     resolution: {integrity: sha512-0SElaV0uMxEnxzBhhX9WTuPyUeMsAN/SS0i16tjuba4/mio63MG9khjC1a0JAiPGXAwvwm4UfHJURCN7nyudQg==}
     engines: {node: '>= 22'}
+
+  '@mapbox/mapbox-gl-rtl-text@0.3.0':
+    resolution: {integrity: sha512-OwQplFqAAEYRobrTKm2wiVP+wcpUVlgXXiUMNQ8tcm5gPN5SQRXFADmITdQOaec4LhDhuuFchS7TS8ua8dUl4w==}
 
   '@mapbox/point-geometry@1.1.0':
     resolution: {integrity: sha512-YGcBz1cg4ATXDCM/71L9xveh4dynfGmcLDqufR+nQQy3fKwsAZsWd/x4621/6uJaeB9mwOHE6hPeDgXz9uViUQ==}
@@ -3752,6 +3758,8 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.6.0
 
   '@mapbox/jsonlint-lines-primitives@2.0.3': {}
+
+  '@mapbox/mapbox-gl-rtl-text@0.3.0': {}
 
   '@mapbox/point-geometry@1.1.0': {}
 

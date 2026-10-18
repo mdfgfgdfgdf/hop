@@ -13,9 +13,13 @@ const envSchema = z.object({
   HOP_SESSION_SECRET: z.string().min(16).default("dev-only-change-me-0000000000000000000000000000"),
   HOP_ADMIN_EMAIL: z.string().email().default("admin@hop.local"),
   HOP_ADMIN_PASSWORD: z.string().min(8).default("Admin1234!"),
-  GEO_PROVIDER: z.enum(["demo", "osm"]).default("demo"),
+  // "osm" = live map data (Photon + Nominatim + OSRM) with automatic offline fallback; "demo" = offline only.
+  GEO_PROVIDER: z.enum(["demo", "osm", "live"]).default("osm"),
+  PHOTON_URL: z.string().url().default("https://photon.komoot.io"),
   NOMINATIM_URL: z.string().url().default("https://nominatim.openstreetmap.org"),
   OSRM_URL: z.string().url().default("https://router.project-osrm.org"),
+  // Contact address sent in the User-Agent (OSM services require a way to reach you).
+  HOP_GEO_CONTACT: z.string().default("ops@hop.local"),
   HOP_DATA_DIR: z.string().default("./data"),
   NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
 });
