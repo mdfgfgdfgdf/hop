@@ -6,11 +6,13 @@ import { api, ApiClientError } from "@/lib/api";
 import { homeForRole } from "@/lib/routes";
 import { Button, Field, Input } from "@/components/ui";
 import { useSession } from "@/components/app/session";
+import { useHydrated } from "@/lib/use-hydrated";
 
 export function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const { refresh } = useSession();
+  const hydrated = useHydrated();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export function LoginForm() {
             {error}
           </div>
         )}
-        <Button type="submit" block loading={loading} data-testid="login-submit">
+        <Button type="submit" block loading={loading} disabled={!hydrated} data-testid="login-submit">
           התחברות
         </Button>
       </form>

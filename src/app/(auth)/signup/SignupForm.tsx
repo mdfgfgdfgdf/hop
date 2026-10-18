@@ -7,11 +7,13 @@ import { api, ApiClientError } from "@/lib/api";
 import { homeForRole } from "@/lib/routes";
 import { Button, Field, Input, cn } from "@/components/ui";
 import { useSession } from "@/components/app/session";
+import { useHydrated } from "@/lib/use-hydrated";
 
 export function SignupForm() {
   const router = useRouter();
   const params = useSearchParams();
   const { refresh } = useSession();
+  const hydrated = useHydrated();
   const [role, setRole] = useState<"rider" | "driver">(params.get("role") === "driver" ? "driver" : "rider");
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
   const [accept, setAccept] = useState(false);
@@ -110,7 +112,7 @@ export function SignupForm() {
             {error}
           </div>
         )}
-        <Button type="submit" block loading={loading} data-testid="signup-submit">
+        <Button type="submit" block loading={loading} disabled={!hydrated} data-testid="signup-submit">
           {role === "driver" ? "הרשמה כנהג/ת" : "הרשמה"}
         </Button>
       </form>

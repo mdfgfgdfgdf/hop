@@ -27,12 +27,13 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: {
-    command: `pnpm exec next dev -p ${PORT}`,
+    command: `node scripts/dev/e2e-server.mjs`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
     env: {
-      DATABASE_URL: "memory://",
+      PORT: String(PORT),
+      DATABASE_URL: "pglite://./data/e2e-db",
       DB_AUTO_MIGRATE: "true",
       DB_AUTO_SEED: "true",
       HOP_DEMO_MODE: "true",

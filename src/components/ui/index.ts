@@ -12,5 +12,6 @@ export { Segmented } from "./Segmented";
 export { Toggle } from "./Toggle";
 export { Skeleton } from "./Skeleton";
 export { StarRating } from "./StarRating";
+export { CountUp } from "./CountUp";
 export { useToast, ToastProvider } from "./Toast";
 export { cn } from "./cn";
